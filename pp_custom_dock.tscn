@@ -1,0 +1,35 @@
+[gd_scene load_steps=2 format=3 uid="uid://dmy0l4nro3yhd"]
+
+[ext_resource type="Script" path="res://addons/Planetary Processing/pp_custom_dock.gd" id="1_nndhg"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_nndhg")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 218.0
+offset_bottom = 435.0
+
+[node name="GameIDLineEdit" type="LineEdit" parent="VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Game ID"
+
+[node name="UsernameLineEdit" type="LineEdit" parent="VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Username"
+
+[node name="PasswordLineEdit" type="LineEdit" parent="VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Password"
+
+[node name="FetchButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Fetch"
+
+[node name="PublishButton" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+text = "Publish"
