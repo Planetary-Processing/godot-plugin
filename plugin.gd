@@ -4,7 +4,7 @@ extends EditorPlugin
 var dock
 
 func _enter_tree():
-	dock = preload("pp_custom_dock.tscn").instantiate()
+	dock = preload("res://addons/planetary_processing/pp_custom_dock.tscn").instantiate()
 	add_control_to_dock(DOCK_SLOT_LEFT_UR, dock)
 
 func _exit_tree():

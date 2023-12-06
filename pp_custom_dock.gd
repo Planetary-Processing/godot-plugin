@@ -66,7 +66,13 @@ func _on_fetch_button_pressed():
 	var username = username_edit.text
 	var password = password_edit.text
 	
-	fetch_from_pp(game_id, username, password)
+	var fetched_data = fetch_from_pp(game_id, username, password)
+
+	# Loop through the dictionary using the keys
+	for filename in fetched_data.keys():
+		var content = fetched_data[filename]
+		write_lua_file(filename, content)
+	EditorFileSystem.new()
 
 func _on_publish_button_pressed():
 	var game_id = game_id_edit.text
@@ -84,9 +90,26 @@ func _on_timer():
 
 func fetch_from_pp(game_id, username, password):
 	print("Fetching from PP...")
+	
+	var dummy_data = {
+		"init.lua": "-- Dummy content for init.lua",
+		"entities/demo1.lua": "-- Dummy content for demo1.lua",
+		"entities/demo2.lua": "-- Dummy content for demo2.lua",
+		"entities/demo3.lua": "-- Dummy content for demo3.lua"
+	}
+
+	return dummy_data
 
 func publish_to_pp(game_id, username, password):
 	print("Publishing to PP...")
 	
 func check_changes_from_pp(game_id, username, password):
 	print("Checking PP for changes...")
+	
+func write_lua_file(filename, content):
+	var filepath = "res://addons/planetary_processing/lua/" + filename
+	var file = FileAccess.open(filepath, FileAccess.WRITE)
+	print(filepath, file)
+	file.store_string(content)
+	file.close()
+
