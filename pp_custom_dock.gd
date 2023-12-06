@@ -7,11 +7,8 @@ var password_edit : LineEdit
 var fetch_button : Button
 var publish_button : Button
 
-var editor_settings_instance
-
 func _enter_tree():
 	print('enter tree custom dock')
-	editor_settings_instance = EditorSettings.new()
 	
 	game_id_edit = $VBoxContainer/GameIDLineEdit
 	username_edit = $VBoxContainer/UsernameLineEdit
@@ -29,6 +26,15 @@ func _enter_tree():
 	
 	fetch_button.connect("pressed", _on_fetch_button_pressed)
 	publish_button.connect("pressed", _on_publish_button_pressed)
+	
+func _exit_tree():
+	game_id_edit.disconnect("text_changed", _on_text_changed)
+	username_edit.disconnect("text_changed", _on_text_changed)
+	password_edit.disconnect("text_changed", _on_text_changed)
+	
+	fetch_button.disconnect("pressed", _on_fetch_button_pressed)
+	publish_button.disconnect("pressed", _on_publish_button_pressed)
+	
 
 func _on_text_changed(new_text):
 	# Handle text change events for all LineEdit fields

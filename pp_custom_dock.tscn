@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://addons/Planetary Processing/pp_custom_dock.gd" id="1_nndhg"]
 
-[node name="Control" type="Control"]
+[node name="Planetary Processing" type="Control"]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
@@ -16,10 +16,12 @@ offset_bottom = 435.0
 
 [node name="GameIDLineEdit" type="LineEdit" parent="VBoxContainer"]
 layout_mode = 2
+text = "asdasd"
 placeholder_text = "Game ID"
 
 [node name="UsernameLineEdit" type="LineEdit" parent="VBoxContainer"]
 layout_mode = 2
+text = "aaa"
 placeholder_text = "Username"
 
 [node name="PasswordLineEdit" type="LineEdit" parent="VBoxContainer"]
