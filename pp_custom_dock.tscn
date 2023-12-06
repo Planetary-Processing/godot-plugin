@@ -25,6 +25,7 @@ placeholder_text = "Username"
 [node name="PasswordLineEdit" type="LineEdit" parent="VBoxContainer"]
 layout_mode = 2
 placeholder_text = "Password"
+secret = true
 
 [node name="FetchButton" type="Button" parent="VBoxContainer"]
 layout_mode = 2
