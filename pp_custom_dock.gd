@@ -7,6 +7,9 @@ var password_edit : LineEdit
 var fetch_button : Button
 var publish_button : Button
 
+var timer: Timer
+var timer_wait_in_s = 10
+
 func _enter_tree():
 	print('enter tree custom dock')
 	
@@ -27,6 +30,13 @@ func _enter_tree():
 	fetch_button.connect("pressed", _on_fetch_button_pressed)
 	publish_button.connect("pressed", _on_publish_button_pressed)
 	
+	timer = Timer.new()
+	timer.set_wait_time(timer_wait_in_s)
+	timer.set_one_shot(false)
+	timer.connect("timeout", _on_timer)
+	add_child(timer)
+	timer.start()
+	
 func _exit_tree():
 	game_id_edit.disconnect("text_changed", _on_text_changed)
 	username_edit.disconnect("text_changed", _on_text_changed)
@@ -34,6 +44,10 @@ func _exit_tree():
 	
 	fetch_button.disconnect("pressed", _on_fetch_button_pressed)
 	publish_button.disconnect("pressed", _on_publish_button_pressed)
+	
+	timer.disconnect("timeout", _on_timer)
+	remove_child(timer)
+	timer.free()
 	
 
 func _on_text_changed(new_text):
@@ -61,8 +75,18 @@ func _on_publish_button_pressed():
 	
 	publish_to_pp(game_id, username, password)
 
+func _on_timer():
+	var game_id = game_id_edit.text
+	var username = username_edit.text
+	var password = password_edit.text
+	
+	check_changes_from_pp(game_id, username, password)
+
 func fetch_from_pp(game_id, username, password):
 	print("Fetching from PP...")
 
 func publish_to_pp(game_id, username, password):
 	print("Publishing to PP...")
+	
+func check_changes_from_pp(game_id, username, password):
+	print("Checking PP for changes...")
