@@ -47,7 +47,7 @@ func _enter_tree():
 #	var root = lua_tree.create_item()
 #	lua_tree.hide_root = true
 #	for file_name in lua_files:
-#		var tree_item = lua_tree.create_item(root)
+#		var tree_item = lua_tree.create_item(root)	print("Fetching from PP...")
 #		tree_item.set_text(0, file_name)
 #		tree_item.set_metadata(0, file_name)
 #
@@ -142,6 +142,20 @@ func fetch_from_pp(game_id, username, password):
 
 func publish_to_pp(game_id, username, password):
 	print("Publishing to PP...")
+	var scenes_with_entity_node : Array = []
+	var root = get_tree().get_edited_scene_root()
+
+	recursive_scene_traversal(root, scenes_with_entity_node)
+
+	for scene_instance in scenes_with_entity_node:
+		print("Scene with entity node:", scene_instance)
+
+func recursive_scene_traversal(node, scenes_with_entity_node):
+	for child in node.get_children():
+		if 'is_entity_node' in child and child.is_entity_node:
+			scenes_with_entity_node.append(node)
+			break
+		recursive_scene_traversal(child, scenes_with_entity_node)
 	
 func check_changes_from_pp(game_id, username, password):
 	print("Checking PP for changes...")
