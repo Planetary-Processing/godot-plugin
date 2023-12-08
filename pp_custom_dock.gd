@@ -148,12 +148,18 @@ func publish_to_pp(game_id, username, password):
 	recursive_scene_traversal(root, scenes_with_entity_node)
 
 	for scene_instance in scenes_with_entity_node:
-		print("Scene with entity node:", scene_instance)
+		var scene_instance_parent = scene_instance.get_parent()
+		print("Entity node:", {
+			'data': scene_instance.data,
+			'chunkloader': scene_instance.chunkloader,
+			'lua_path': scene_instance.lua_path,
+			'position': scene_instance_parent.transform.origin
+		})
 
 func recursive_scene_traversal(node, scenes_with_entity_node):
 	for child in node.get_children():
 		if 'is_entity_node' in child and child.is_entity_node:
-			scenes_with_entity_node.append(node)
+			scenes_with_entity_node.append(child)
 			break
 		recursive_scene_traversal(child, scenes_with_entity_node)
 	
