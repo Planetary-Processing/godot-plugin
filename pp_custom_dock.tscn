@@ -16,7 +16,7 @@ offset_bottom = 667.0
 
 [node name="GameIDLineEdit" type="LineEdit" parent="VBoxContainer"]
 layout_mode = 2
-text = "asdasd"
+text = "123"
 placeholder_text = "Game ID"
 
 [node name="UsernameLineEdit" type="LineEdit" parent="VBoxContainer"]
