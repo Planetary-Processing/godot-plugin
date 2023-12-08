@@ -37,7 +37,6 @@ func _enter_tree():
 	add_child(timer)
 	timer.start()
 	
-		
 
 # not being used currently, but leaving here for reference
 #func _populate_lua_tree():
@@ -150,7 +149,7 @@ func check_changes_from_pp(game_id, username, password):
 func write_lua_file(filename, content):
 	var filepath = "res://addons/planetary_processing/lua/" + filename
 	var file = FileAccess.open(filepath, FileAccess.WRITE)
-	print(filepath, file)
+	print(filepath)
 	file.store_string(content)
 	file.close()
 

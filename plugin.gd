@@ -10,7 +10,9 @@ func _enter_tree():
 	settings.set_setting("docks/filesystem/textfile_extensions", textfile_extensions + ',lua')
 	dock = preload("pp_custom_dock.tscn").instantiate()
 	add_control_to_dock(DOCK_SLOT_LEFT_UR, dock)
+	add_custom_type("PPRootNode", "Node", preload("pp_root_node.gd"), preload("pp_logo.png"))
 
 func _exit_tree():
 	remove_control_from_docks(dock)
 	dock.free()
+	remove_custom_type("PPRootNode")
