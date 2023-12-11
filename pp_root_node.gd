@@ -7,12 +7,30 @@ signal entity_state_changed(entity_id, new_state)
 @export_category("Game Config")
 @export var game_id = ''
 @export var username = ''
-@export var password = ''
-@export var pp_button_fetch:String
-@export var pp_button_publish:String
+var password = ''
 
 var timer: Timer
 var timer_wait_in_s = 10
+
+func _get_property_list() -> Array[Dictionary]:
+	var properties: Array[Dictionary] = []
+	properties.append({
+		"name": "password",
+		"hint": PROPERTY_HINT_PASSWORD,
+		"type": TYPE_STRING,
+		"usage": PROPERTY_USAGE_SECRET | PROPERTY_USAGE_DEFAULT
+	})
+	properties.append({
+		"name": "pp_button_fetch",
+		"type": TYPE_STRING,
+		"usage": PROPERTY_USAGE_DEFAULT
+	})
+	properties.append({
+		"name": "pp_button_publish",
+		"type": TYPE_STRING,
+		"usage": PROPERTY_USAGE_DEFAULT
+	})
+	return properties
 
 func _on_button_pressed(text:String):
 	if text.to_lower() == "fetch":
@@ -25,7 +43,6 @@ func _on_button_pressed(text:String):
 func _on_fetch_button_pressed():	
 	var fetched_data = fetch_from_pp()
 
-	# Loop through the dictionary using the keys
 	for filename in fetched_data.keys():
 		var content = fetched_data[filename]
 		write_lua_file(filename, content)
