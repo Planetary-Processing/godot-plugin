@@ -17,6 +17,6 @@ func _get_property_list() -> Array[Dictionary]:
 			"type": TYPE_STRING,
 			"hint_string": "*.lua",
 			"hint": PROPERTY_HINT_FILE,
-			"usage": PROPERTY_USAGE_READ_ONLY if is_instance else PROPERTY_USAGE_DEFAULT
+			"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR if is_instance else PROPERTY_USAGE_DEFAULT
 		})
 	return properties
