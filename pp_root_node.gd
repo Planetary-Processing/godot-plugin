@@ -1,8 +1,12 @@
 @tool
 extends Node
 
+const Utils = preload("res://addons/planetary_processing/pp_utils.gd")
+
 signal authentication_successful(username)
 signal entity_state_changed(entity_id, new_state)
+
+static var base_path = "res://addons/planetary_processing/lua/"
 
 @export_category("Game Config")
 @export var game_id = ''
@@ -45,13 +49,9 @@ func _on_fetch_button_pressed():
 
 	for filename in fetched_data.keys():
 		var content = fetched_data[filename]
-		write_lua_file(filename, content)
+		Utils.write_lua_file(base_path + filename, content)
 	
-	if Engine.is_editor_hint():
-		var _editor_plugin = (EditorPlugin as Variant).new()
-		var interface = _editor_plugin.get_editor_interface()
-		var resource_filesystem = interface.get_resource_filesystem()
-		resource_filesystem.scan()
+	Utils.refresh_filesystem()
 
 func _on_publish_button_pressed():
 	publish_to_pp()
@@ -97,13 +97,8 @@ func publish_to_pp():
 		})
 		
 	var data = JSON.stringify(entity_init_data)
-	write_lua_file('init.json', data)
-	
-	if Engine.is_editor_hint():
-		var _editor_plugin = (EditorPlugin as Variant).new()
-		var interface = _editor_plugin.get_editor_interface()
-		var resource_filesystem = interface.get_resource_filesystem()
-		resource_filesystem.scan()
+	Utils.write_lua_file(base_path + 'init.json', data)
+	Utils.refresh_filesystem()
 
 func recursive_scene_traversal(node, scenes_with_entity_node):
 	for child in node.get_children():
@@ -114,13 +109,6 @@ func recursive_scene_traversal(node, scenes_with_entity_node):
 	
 func check_changes_from_pp():
 	print("Checking PP for changes...")
-	
-func write_lua_file(filename, content):
-	var filepath = "res://addons/planetary_processing/lua/" + filename
-	var file = FileAccess.open(filepath, FileAccess.WRITE)
-	print(filepath)
-	file.store_string(content)
-	file.close()
 
 var is_authenticated : bool = false
 
