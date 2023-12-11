@@ -30,9 +30,11 @@ func _on_fetch_button_pressed():
 		var content = fetched_data[filename]
 		write_lua_file(filename, content)
 	
-	var interface = EditorPlugin.new().get_editor_interface()
-	var resource_filesystem = interface.get_resource_filesystem()
-	resource_filesystem.scan()
+	if Engine.is_editor_hint():
+		var _editor_plugin = (EditorPlugin as Variant).new()
+		var interface = _editor_plugin.get_editor_interface()
+		var resource_filesystem = interface.get_resource_filesystem()
+		resource_filesystem.scan()
 
 func _on_publish_button_pressed():
 	publish_to_pp()
@@ -80,9 +82,11 @@ func publish_to_pp():
 	var data = JSON.stringify(entity_init_data)
 	write_lua_file('init.json', data)
 	
-	var interface = EditorPlugin.new().get_editor_interface()
-	var resource_filesystem = interface.get_resource_filesystem()
-	resource_filesystem.scan()
+	if Engine.is_editor_hint():
+		var _editor_plugin = (EditorPlugin as Variant).new()
+		var interface = _editor_plugin.get_editor_interface()
+		var resource_filesystem = interface.get_resource_filesystem()
+		resource_filesystem.scan()
 
 func recursive_scene_traversal(node, scenes_with_entity_node):
 	for child in node.get_children():
