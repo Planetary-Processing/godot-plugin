@@ -35,8 +35,34 @@ func _get_property_list() -> Array[Dictionary]:
 		"usage": PROPERTY_USAGE_DEFAULT
 	})
 	return properties
+	
+func _validate_fields():
+	var regex = RegEx.new()
+	regex.compile("^[0-9]+$")
+	if not regex.search(game_id):
+		return {
+			"valid": false,
+			"message": "Game ID should be a numeric value"
+		}
+	regex.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")
+	if not regex.search(username):
+		return {
+			"valid": false,
+			"message": "Username should be a valid email address"
+		}
+	if password.length() < 6:
+		return {
+			"valid": false,
+			"message": "Password must be at least 6 characters long"
+		}
+	return {
+		"valid": true,
+		"message": ""
+	}
 
 func _on_button_pressed(text:String):
+	var validation_result = _validate_fields()
+	assert(validation_result.valid, validation_result.message)
 	if text.to_lower() == "fetch":
 		_on_fetch_button_pressed()
 		return
@@ -57,6 +83,8 @@ func _on_publish_button_pressed():
 	publish_to_pp()
 
 func _on_timer():
+	if not _validate_fields().valid:
+		return
 	check_changes_from_pp()
 
 func fetch_from_pp():
