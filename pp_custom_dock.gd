@@ -146,15 +146,31 @@ func publish_to_pp(game_id, username, password):
 	var root = get_tree().get_edited_scene_root()
 
 	recursive_scene_traversal(root, scenes_with_entity_node)
+	
+	var entity_init_data = []
 
 	for scene_instance in scenes_with_entity_node:
 		var scene_instance_parent = scene_instance.get_parent()
-		print("Entity node:", {
-			'data': scene_instance.data,
+		var data = {}
+		if scene_instance.data:
+			var json = JSON.new()
+			var result = json.parse(scene_instance.data)
+			assert(result == OK, 'invalid json found in data field of entity: ' + scene_instance_parent.name)
+			data = json.data
+		var lua_path_array = scene_instance.lua_path.split('/')
+		entity_init_data.append({
+			'data': data,
 			'chunkloader': scene_instance.chunkloader,
-			'lua_path': scene_instance.lua_path,
+			'lua_file': lua_path_array[lua_path_array.size() - 1],
 			'position': scene_instance_parent.transform.origin
 		})
+		
+	var data = JSON.stringify(entity_init_data)
+	write_lua_file('init.json', data)
+	
+	var interface = EditorPlugin.new().get_editor_interface()
+	var resource_filesystem = interface.get_resource_filesystem()
+	resource_filesystem.scan()
 
 func recursive_scene_traversal(node, scenes_with_entity_node):
 	for child in node.get_children():
