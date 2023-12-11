@@ -11,6 +11,9 @@ signal entity_state_changed(entity_id, new_state)
 @export var pp_button_fetch:String
 @export var pp_button_publish:String
 
+var timer: Timer
+var timer_wait_in_s = 10
+
 func _on_button_pressed(text:String):
 	if text.to_lower() == "fetch":
 		_on_fetch_button_pressed()
@@ -125,10 +128,20 @@ func _enter_tree():
 		return
 	get_tree().connect("node_added", _on_node_added)
 	
+	timer = Timer.new()
+	timer.set_wait_time(timer_wait_in_s)
+	timer.set_one_shot(false)
+	timer.connect("timeout", _on_timer)
+	add_child(timer)
+	timer.start()
+	
 func _exit_tree():
 	if not Engine.is_editor_hint():
 		return
 	get_tree().disconnect("node_added", _on_node_added)
+	timer.disconnect("timeout", _on_timer)
+	remove_child(timer)
+	timer.free()
 
 func _on_node_added(node):
 	if 'is_entity_node' in node:
