@@ -3,7 +3,8 @@
 const ERROR = 1
 const OK = 0
 
-var _host = "https://golang.planetaryprocessing.io"
+var _host = "https://planetaryprocessing.io"
+var _base_path = "/_api/golang.planetaryprocessing.io"
 var _port = 443
 var _error = ""
 var _response = ""
@@ -11,23 +12,23 @@ var _response = ""
 var client = HTTPClient.new()
 
 func get(url):
-	return _request( HTTPClient.METHOD_GET, url, "" )
+	return _request( HTTPClient.METHOD_GET, _base_path + url, "" )
 
 func post(url, body):
-	return _request( HTTPClient.METHOD_POST, _host + url, JSON.stringify(body))
+	print(_host + _base_path + url)
+	return _request( HTTPClient.METHOD_POST, _base_path + url, JSON.stringify(body))
 
 func _request(method, url, body):
 	_response = ""
 	var res = _connect()
 	assert(res == OK, _error)
-	client.request( method, url, [], body)
+	client.request( method, url, [ "Content-Type: application/json" ], body)
 	
 	res = _poll()
 	assert(res == OK, _error)
 	
 	var responseByteArray = _parseBody()
 	print(responseByteArray.get_string_from_ascii())
-	
 	client.close()
 	return _response
 
@@ -83,5 +84,6 @@ func _parseBody():
 			responseByteArray = responseByteArray + chunk
 
 	var response_code = client.get_response_code()
+	print(response_code, client.get_response_headers_as_dictionary())
 	assert(response_code >= 200 && response_code < 300, "HTTP Error status code:" + str(response_code) )
 	return responseByteArray

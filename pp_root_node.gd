@@ -106,7 +106,7 @@ func _on_button_pressed(text:String):
 		
 func _on_login_button_pressed():
 	var client = PPHTTPClient.new()
-	var resp = client.post('/apis/liteauth/LiteAuth', { "Email": username, "Password": password })
+	var resp = client.post('/apis/liteauth/LiteAuth/AuthMe', { "Email": username, "Password": password })
 	print(resp)
 	#var http = HTTPClient.new()
 	#var err = http.connect_to_host("https://golang.planetaryprocessing.io", 443)
