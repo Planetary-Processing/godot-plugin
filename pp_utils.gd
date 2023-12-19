@@ -1,8 +1,8 @@
 static func write_lua_file(filepath, content):
 	var file = FileAccess.open(filepath, FileAccess.WRITE)
-	print(filepath)
-	file.store_string(content)
+	file.store_buffer(content)
 	file.close()
+	print("Stored file: ", filepath)
 
 static func refresh_filesystem():
 	if Engine.is_editor_hint():
@@ -13,11 +13,7 @@ static func refresh_filesystem():
 
 static func scrub_lua_files(path):
 	var dir = DirAccess.open(path)
-	while dir.next() == OK:
-		var file_name = dir.get_file()
+	for file_name in dir.get_files():
 		if file_name.ends_with(".lua"):
-			var file_path = dir.remove(file_name)
-			print("Deleted file: ", file_path)
-
-	dir.list_end()
-	
+			dir.remove(file_name)
+			print("Deleted file: ", file_name)

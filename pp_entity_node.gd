@@ -4,7 +4,7 @@ extends Node
 const Utils = preload("res://addons/planetary_processing/pp_utils.gd")
 
 static var is_entity_node: bool = true
-static var base_path = "res://addons/planetary_processing/lua/entities/" 
+static var base_path = "res://addons/planetary_processing/lua/entity/" 
 
 @export_category("Entity Properties")
 @export_multiline var data = ''

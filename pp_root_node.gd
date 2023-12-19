@@ -148,7 +148,7 @@ func _on_fetch_button_pressed():
 	
 	# remove old lua files before writing new ones
 	Utils.scrub_lua_files("res://addons/planetary_processing/lua/")
-	Utils.scrub_lua_files("res://addons/planetary_processing/lua/entities/")
+	Utils.scrub_lua_files("res://addons/planetary_processing/lua/entity/")
 	for filename in fetched_data.keys():
 		var content = fetched_data[filename]
 		Utils.write_lua_file(base_path + filename, content)
@@ -171,17 +171,29 @@ func _fetch_from_pp():
 	var json = JSON.new()
 	var result = json.parse(resp)
 	var data = json.data
-	print(data)
-	#return data
+	assert("ZipContent" in data, "Malformed response")
+	var zip_content_b64 = data["ZipContent"]
+	var zip_content_bytes = Marshalls.base64_to_raw(zip_content_b64)
 	
-	var dummy_data = {
-		"init.lua": "-- Dummy content for init.lua",
-		"entities/demo1.lua": "-- Dummy content for demo1.lua",
-		"entities/demo2.lua": "-- Dummy content for demo2.lua",
-		"entities/demo3.lua": "-- Dummy content for demo3.lua"
-	}
-
-	return dummy_data
+	# write zip to temp file
+	var temp_path = "res://addons/planetary_processing/temp.zip"
+	DirAccess.remove_absolute(temp_path)
+	var temp_file = FileAccess.open(temp_path, FileAccess.WRITE)
+	temp_file.store_buffer(zip_content_bytes)
+	temp_file.close()
+	
+	#extract temp file
+	var reader := ZIPReader.new()
+	var r = reader.open(temp_path)
+	assert(r == OK, "Zip file could not be read")
+	var files := reader.get_files()
+	var files_dict = {}
+	for file in files:
+		var content = reader.read_file(file)
+		if len(content):
+			files_dict[file] = content
+	
+	return files_dict
 
 func _publish_to_pp():
 	print("Publishing to PP...")
