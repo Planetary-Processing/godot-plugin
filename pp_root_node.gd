@@ -11,12 +11,12 @@ static var base_path = "res://addons/planetary_processing/lua/"
 
 @export_category("Game Config")
 @export var game_id = ''
-@export var username = ''
+var username = ''
 var password = ''
+var logged_in = false
 
 var client = PPHTTPClient.new()
 var player_is_authenticated : bool = false
-var settings = EditorInterface.get_editor_settings() if Engine.is_editor_hint() else null
 var timer: Timer
 var timer_wait_in_s = 10
 
@@ -43,16 +43,28 @@ func _ready():
 func _get_property_list() -> Array[Dictionary]:
 	var properties: Array[Dictionary] = []
 	properties.append({
+		"name": "username",
+		"type": TYPE_STRING,
+		"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_DEFAULT if logged_in else PROPERTY_USAGE_DEFAULT
+	})
+	properties.append({
 		"name": "password",
 		"hint": PROPERTY_HINT_PASSWORD,
 		"type": TYPE_STRING,
-		"usage": PROPERTY_USAGE_SECRET | PROPERTY_USAGE_DEFAULT
+		"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_SECRET | PROPERTY_USAGE_EDITOR if logged_in else PROPERTY_USAGE_SECRET | PROPERTY_USAGE_DEFAULT 
 	})
-	properties.append({
-		"name": "pp_button_login",
-		"type": TYPE_STRING,
-		"usage": PROPERTY_USAGE_DEFAULT
-	})
+	if logged_in:
+		properties.append({
+			"name": "pp_button_logout",
+			"type": TYPE_STRING,
+			"usage": PROPERTY_USAGE_DEFAULT
+		})
+	else:
+		properties.append({
+			"name": "pp_button_login",
+			"type": TYPE_STRING,
+			"usage": PROPERTY_USAGE_DEFAULT
+		})
 	properties.append({
 		"name": "pp_button_fetch",
 		"type": TYPE_STRING,
@@ -95,6 +107,9 @@ func _on_button_pressed(text:String):
 	if text.to_lower() == "login":
 		_on_login_button_pressed()
 		return
+	if text.to_lower() == "logout":
+		_on_logout_button_pressed()
+		return
 	if text.to_lower() == "fetch":
 		_on_fetch_button_pressed()
 		return
@@ -103,19 +118,22 @@ func _on_button_pressed(text:String):
 		return
 
 func _on_login_button_pressed():
-	var resp = client.post('/apis/liteauth/LiteAuth/AuthMe', { "Email": username, "Password": password }, false)
+	var resp = client.post('/apis/httputils/HTTPUtils/WhoAmI', {}, username, password)
 	if !resp:
 		return
 	var json = JSON.new()
 	var result = json.parse(resp)
 	var data = json.data
-	assert("Token" in data, "Malformed auth response")
-	var token = data["Token"]
-	print("Authentication successful. Token: ", token)
-	settings.set_setting("auth/token", token)
-	
+	assert("Approved" in data, "Malformed response")
+	assert(data["Approved"], "User is not approved")
+	logged_in = true
+	notify_property_list_changed()
 
-func _on_fetch_button_pressed():	
+func _on_logout_button_pressed():
+	logged_in = false
+	notify_property_list_changed()
+
+func _on_fetch_button_pressed():
 	var fetched_data = _fetch_from_pp()
 	if !fetched_data:
 		return
@@ -139,7 +157,7 @@ func _on_timer():
 
 func _fetch_from_pp():
 	print("Fetching from Planetary Processing...")
-	var resp = client.post('/apis/sdkendpoints/SDKEndpoints/Fetch', { "GameID": game_id })
+	var resp = client.post('/apis/sdkendpoints/SDKEndpoints/Fetch', { "GameID": game_id }, username, password)
 	if !resp:
 		return
 	var json = JSON.new()

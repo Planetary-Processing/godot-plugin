@@ -10,35 +10,24 @@ var _error = ""
 var _response = ""
 
 var client = HTTPClient.new()
-var settings = EditorInterface.get_editor_settings() if Engine.is_editor_hint() else null
 
-func get(url, body = "", authenticated = true):
-	print("Get " + _host + _base_path + url)
-	var token = ""
-	if authenticated:
-		token = settings.get_setting("auth/token")
-		assert(token, "Not logged in")
-	return _request( HTTPClient.METHOD_GET, _base_path + url, body, token )
-
-func post(url, body, authenticated = true):
+func post(url, body, username, password):
 	print("Post " + _host + _base_path + url)
-	var token = ""
-	if authenticated:
-		token = settings.get_setting("auth/token")
-		assert(token, "Not logged in")
-	return _request( HTTPClient.METHOD_POST, _base_path + url, JSON.stringify(body), token)
+	return _request( HTTPClient.METHOD_POST, _base_path + url, JSON.stringify(body), username, password)
 
-func _request(method, url, body, token):
+func _request(method, url, body, username, password):
 	_response = ""
 	var res = _connect()
 	assert(res == OK, _error)
 	
-	client.request( method, url, [ "Content-Type: application/json", "temp-auth: " + token ], body)
+	var auth_string = username + ":" + password
+	var auth = "Basic " + Marshalls.utf8_to_base64(auth_string)
+	client.request( method, url, [ "Content-Type: application/json", "Authorization: " + auth ], body)
 	res = _poll()
 	assert(res == OK, _error)
 	
 	var responseByteArray = _parseResponse()
-	assert(responseByteArray != ERROR, _error)
+	assert(responseByteArray, _error)
 	client.close()
 	return responseByteArray.get_string_from_ascii()
 
@@ -54,7 +43,7 @@ func _setError(msg):
 	return ERROR
 
 func _poll():
-	var status = -1
+	var status
 	var current_status
 	while(true):
 		client.poll()
@@ -96,7 +85,6 @@ func _parseResponse():
 	var response_code = client.get_response_code()
 	print(response_code, client.get_response_headers_as_dictionary())
 	if response_code < 200 || response_code >= 300:
-		# TODO establish what status codes correlate with expired token
-		settings.erase("auth/token")
-		return _setError("HTTP Error status code: " + str(response_code))
+		_setError("HTTP Error status code: " + str(response_code))
+		return
 	return responseByteArray

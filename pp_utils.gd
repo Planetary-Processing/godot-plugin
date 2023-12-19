@@ -20,3 +20,4 @@ static func scrub_lua_files(path):
 			print("Deleted file: ", file_path)
 
 	dir.list_end()
+	
