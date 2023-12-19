@@ -176,7 +176,7 @@ func _fetch_from_pp():
 	var zip_content_bytes = Marshalls.base64_to_raw(zip_content_b64)
 	
 	# write zip to temp file
-	var temp_path = "res://addons/planetary_processing/temp.zip"
+	var temp_path = "res://addons/planetary_processing/fetch.zip"
 	DirAccess.remove_absolute(temp_path)
 	var temp_file = FileAccess.open(temp_path, FileAccess.WRITE)
 	temp_file.store_buffer(zip_content_bytes)
@@ -220,7 +220,8 @@ func _publish_to_pp():
 		})
 		
 	var data = JSON.stringify(entity_init_data)
-	Utils.write_lua_file(base_path + 'init.json', data)
+	Utils.write_string_to_file(base_path + 'init.json', data)
+	Utils.zip_directory("res://addons/planetary_processing/lua", "res://addons/planetary_processing/publish.zip")
 	Utils.refresh_filesystem()
 
 func _recursive_scene_traversal(node, scenes_with_entity_node):
