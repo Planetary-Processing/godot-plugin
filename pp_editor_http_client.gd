@@ -10,7 +10,7 @@ var _error = ""
 var _response = ""
 
 var client = HTTPClient.new()
-var settings = EditorInterface.get_editor_settings()
+var settings = EditorInterface.get_editor_settings() if Engine.is_editor_hint() else null
 
 func get(url, body = "", authenticated = true):
 	print("Get " + _host + _base_path + url)

@@ -16,7 +16,7 @@ var password = ''
 
 var client = PPHTTPClient.new()
 var player_is_authenticated : bool = false
-var settings = EditorInterface.get_editor_settings()
+var settings = EditorInterface.get_editor_settings() if Engine.is_editor_hint() else null
 var timer: Timer
 var timer_wait_in_s = 10
 
@@ -105,7 +105,7 @@ func _on_button_pressed(text:String):
 func _on_login_button_pressed():
 	var resp = client.post('/apis/liteauth/LiteAuth/AuthMe', { "Email": username, "Password": password }, false)
 	if !resp:
-		return false
+		return
 	var json = JSON.new()
 	var result = json.parse(resp)
 	var data = json.data
@@ -113,7 +113,6 @@ func _on_login_button_pressed():
 	var token = data["Token"]
 	print("Authentication successful. Token: ", token)
 	settings.set_setting("auth/token", token)
-	return true
 	
 
 func _on_fetch_button_pressed():	
