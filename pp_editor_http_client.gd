@@ -12,7 +12,6 @@ var _response = ""
 var client = HTTPClient.new()
 
 func post(url, body, username, password):
-	print("Post " + _host + _base_path + url)
 	return _request( HTTPClient.METHOD_POST, _base_path + url, JSON.stringify(body), username, password)
 
 func _request(method, url, body, username, password):
@@ -50,7 +49,6 @@ func _poll():
 		current_status = client.get_status()
 		if( status != current_status ):
 			status = current_status
-			print("HTTPClient entered status ", status)
 			if( status == HTTPClient.STATUS_RESOLVING ):
 				continue
 			if( status == HTTPClient.STATUS_REQUESTING ):

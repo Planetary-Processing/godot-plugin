@@ -10,7 +10,7 @@ signal entity_state_changed(entity_id, new_state)
 static var base_path = "res://addons/planetary_processing/lua/"
 
 @export_category("Game Config")
-@export var game_id = ''
+var game_id = ''
 var username = ''
 var password = ''
 var logged_in = false
@@ -43,6 +43,11 @@ func _ready():
 func _get_property_list() -> Array[Dictionary]:
 	var properties: Array[Dictionary] = []
 	properties.append({
+		"name": "game_id",
+		"type": TYPE_STRING,
+		"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_DEFAULT if logged_in else PROPERTY_USAGE_DEFAULT
+	})
+	properties.append({
 		"name": "username",
 		"type": TYPE_STRING,
 		"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_DEFAULT if logged_in else PROPERTY_USAGE_DEFAULT
@@ -59,22 +64,22 @@ func _get_property_list() -> Array[Dictionary]:
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT
 		})
+		properties.append({
+			"name": "pp_button_fetch",
+			"type": TYPE_STRING,
+			"usage": PROPERTY_USAGE_DEFAULT
+		})
+		properties.append({
+			"name": "pp_button_publish",
+			"type": TYPE_STRING,
+			"usage": PROPERTY_USAGE_DEFAULT
+		})
 	else:
 		properties.append({
 			"name": "pp_button_login",
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT
 		})
-	properties.append({
-		"name": "pp_button_fetch",
-		"type": TYPE_STRING,
-		"usage": PROPERTY_USAGE_DEFAULT
-	})
-	properties.append({
-		"name": "pp_button_publish",
-		"type": TYPE_STRING,
-		"usage": PROPERTY_USAGE_DEFAULT
-	})
 	return properties
 
 func _validate_fields():
@@ -126,6 +131,9 @@ func _on_login_button_pressed():
 	var data = json.data
 	assert("Approved" in data, "Malformed response")
 	assert(data["Approved"], "User is not approved")
+	# check user has access to provided game
+	resp = client.post('/apis/gamestore/GameStore/GetGame', { "GameID": game_id }, username, password)
+	assert(resp, "User does not have access to this game")
 	logged_in = true
 	notify_property_list_changed()
 
@@ -163,6 +171,7 @@ func _fetch_from_pp():
 	var json = JSON.new()
 	var result = json.parse(resp)
 	var data = json.data
+	print(data)
 	#return data
 	
 	var dummy_data = {
@@ -182,7 +191,6 @@ func _publish_to_pp():
 	_recursive_scene_traversal(root, scenes_with_entity_node)
 	
 	var entity_init_data = []
-
 	for scene_instance in scenes_with_entity_node:
 		var scene_instance_parent = scene_instance.get_parent()
 		var data = {}
