@@ -14,13 +14,11 @@ static var base_path = "res://addons/planetary_processing/lua/"
 @export var username = ''
 var password = ''
 
+var client = PPHTTPClient.new()
+var player_is_authenticated : bool = false
+var settings = EditorInterface.get_editor_settings()
 var timer: Timer
 var timer_wait_in_s = 10
-
-var developer_token : String = ""
-var player_is_authenticated : bool = false
-
-var settings = EditorInterface.get_editor_settings()
 
 func authenticate_player(username: String, password: String) -> bool:
 	player_is_authenticated = true
@@ -66,7 +64,7 @@ func _get_property_list() -> Array[Dictionary]:
 		"usage": PROPERTY_USAGE_DEFAULT
 	})
 	return properties
-	
+
 func _validate_fields():
 	var regex = RegEx.new()
 	regex.compile("^[0-9]+$")
@@ -103,55 +101,29 @@ func _on_button_pressed(text:String):
 	if text.to_lower() == "publish":
 		_on_publish_button_pressed()
 		return
-		
+
 func _on_login_button_pressed():
-	var client = PPHTTPClient.new()
-	var resp = client.post('/apis/liteauth/LiteAuth/AuthMe', { "Email": username, "Password": password })
-	print(resp)
-	#var http = HTTPClient.new()
-	#var err = http.connect_to_host("https://golang.planetaryprocessing.io", 443)
-	#assert(err==OK)
-	#while( http.get_status()==HTTPClient.STATUS_CONNECTING or http.get_status()==HTTPClient.STATUS_RESOLVING):
-		#http.poll()
-		#print("Connecting..")
-		#OS.delay_msec(500)
-	#assert( http.get_status() == HTTPClient.STATUS_CONNECTED )
-	#http.close()
-	#print('a')
-	#var request = HTTPRequest.new()
-	#print('b')
-	#request.connect("request_completed", _on_login_request_completed)
-	#request.request(
-		#"https://golang.planetaryprocessing.io/apis/liteauth",
-		#[ "Content-Type: application/json" ],
-		#HTTPClient.METHOD_POST,
-		#JSON.stringify({ "Email": username, "Password": password })
-	#)
-	#await request.request_completed
-#
-	## Parse the response and store the token
-	#if request.get_response_code() == HTTPClient.RESPONSE_OK:
-		#var json = JSON.new()
-		#var result = json.parse(request.get_response_data_as_text())
-		#assert(result == OK, 'invalid response from login request')
-		#var data = json.data
-		#if "Token" in data:
-			#var token = data["Token"]
-			#print("Authentication successful. Token:", token)
-			#settings.set_setting("auth/token", token)
-			#return true
-#
-	## Authentication failed
-	#print("Authentication failed.")
-	#return false
+	var resp = client.post('/apis/liteauth/LiteAuth/AuthMe', { "Email": username, "Password": password }, false)
+	if !resp:
+		return false
+	var json = JSON.new()
+	var result = json.parse(resp)
+	var data = json.data
+	assert("Token" in data, "Malformed auth response")
+	var token = data["Token"]
+	print("Authentication successful. Token: ", token)
+	settings.set_setting("auth/token", token)
+	return true
 	
-func _on_login_request_completed(result, response_code, headers, body):
-	print("Authentication request completed. Response Code:", response_code)
-	print("Response Body:", body)
-		
+
 func _on_fetch_button_pressed():	
 	var fetched_data = _fetch_from_pp()
-
+	if !fetched_data:
+		return
+	
+	# remove old lua files before writing new ones
+	Utils.scrub_lua_files("res://addons/planetary_processing/lua/")
+	Utils.scrub_lua_files("res://addons/planetary_processing/lua/entities/")
 	for filename in fetched_data.keys():
 		var content = fetched_data[filename]
 		Utils.write_lua_file(base_path + filename, content)
@@ -167,7 +139,14 @@ func _on_timer():
 	_check_changes_from_pp()
 
 func _fetch_from_pp():
-	print("Fetching from PP...")
+	print("Fetching from Planetary Processing...")
+	var resp = client.post('/apis/sdkendpoints/SDKEndpoints/Fetch', { "GameID": game_id })
+	if !resp:
+		return
+	var json = JSON.new()
+	var result = json.parse(resp)
+	var data = json.data
+	#return data
 	
 	var dummy_data = {
 		"init.lua": "-- Dummy content for init.lua",
@@ -227,7 +206,7 @@ func _enter_tree():
 	timer.connect("timeout", _on_timer)
 	add_child(timer)
 	timer.start()
-	
+
 func _exit_tree():
 	if not Engine.is_editor_hint():
 		return
