@@ -221,7 +221,15 @@ func _publish_to_pp():
 		
 	var data = JSON.stringify(entity_init_data)
 	Utils.write_string_to_file(base_path + 'init.json', data)
-	Utils.zip_directory("res://addons/planetary_processing/lua", "res://addons/planetary_processing/publish.zip")
+	var temp_path = "res://addons/planetary_processing/publish.zip"
+	Utils.zip_directory("res://addons/planetary_processing/lua", temp_path)
+	var zip_content_bytes = FileAccess.get_file_as_bytes(temp_path)
+	var zip_content_b64 = Marshalls.raw_to_base64(zip_content_bytes)
+	print(zip_content_b64)
+	DirAccess.remove_absolute(temp_path)
+	var resp = client.post('/apis/sdkendpoints/SDKEndpoints/Publish', { "ZipContent": zip_content_b64, "GameID": game_id }, username, password)
+	if !resp:
+		return
 	Utils.refresh_filesystem()
 
 func _recursive_scene_traversal(node, scenes_with_entity_node):

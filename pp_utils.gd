@@ -48,7 +48,7 @@ static func add_files_to_zip(zip_packer, directory_path, relative_path) -> Error
 		
 		var file := FileAccess.open(absolute_file_path, FileAccess.READ)
 		if file:
-			zip_packer.write_file(file.get_as_text().to_utf8_buffer())
+			zip_packer.write_file(FileAccess.get_file_as_bytes(absolute_file_path))
 			file.close()
 	for dir_name in dir.get_directories():
 		var dir_path = relative_path + dir_name + '/'
