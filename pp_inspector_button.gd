@@ -1,7 +1,7 @@
 extends MarginContainer
 
 func _init(obj: Object, text:String):
-	size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var button := Button.new()
 	add_child(button)
 	button.size_flags_horizontal = SIZE_EXPAND_FILL

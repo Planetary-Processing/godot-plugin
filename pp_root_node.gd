@@ -14,11 +14,13 @@ var game_id = ''
 var username = ''
 var password = ''
 var logged_in = false
+var remote_changes = false
 
 var client = PPHTTPClient.new()
 var player_is_authenticated : bool = false
 var timer: Timer
 var timer_wait_in_s = 10
+var settings = EditorInterface.get_editor_settings()
 
 func authenticate_player(username: String, password: String) -> bool:
 	player_is_authenticated = true
@@ -64,11 +66,18 @@ func _get_property_list() -> Array[Dictionary]:
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT
 		})
-		properties.append({
-			"name": "pp_button_fetch",
-			"type": TYPE_STRING,
-			"usage": PROPERTY_USAGE_DEFAULT
-		})
+		if remote_changes:
+			properties.append({
+				"name": "pp_button_fetch",
+				"type": TYPE_STRING,
+				"usage": PROPERTY_USAGE_DEFAULT
+			})
+		else:
+			properties.append({
+				"name": "pp_button_no_remote_changes",
+				"type": TYPE_STRING,
+				"usage": PROPERTY_USAGE_DEFAULT
+			})
 		properties.append({
 			"name": "pp_button_publish",
 			"type": TYPE_STRING,
@@ -159,7 +168,7 @@ func _on_publish_button_pressed():
 	_publish_to_pp()
 
 func _on_timer():
-	if not _validate_fields().valid:
+	if not logged_in:
 		return
 	_check_changes_from_pp()
 
@@ -182,7 +191,7 @@ func _fetch_from_pp():
 	temp_file.store_buffer(zip_content_bytes)
 	temp_file.close()
 	
-	#extract temp file
+	# extract temp file
 	var reader := ZIPReader.new()
 	var r = reader.open(temp_path)
 	assert(r == OK, "Zip file could not be read")
@@ -193,10 +202,14 @@ func _fetch_from_pp():
 		if len(content):
 			files_dict[file] = content
 	
+	# set commit hash
+	settings.set_setting("planetary_processing/commit", data["CommitHash"])
+	remote_changes = false
+	notify_property_list_changed()
+	
 	return files_dict
 
 func _publish_to_pp():
-	print("Publishing to PP...")
 	var scenes_with_entity_node : Array = []
 	var root = get_tree().get_edited_scene_root()
 
@@ -225,12 +238,22 @@ func _publish_to_pp():
 	Utils.zip_directory("res://addons/planetary_processing/lua", temp_path)
 	var zip_content_bytes = FileAccess.get_file_as_bytes(temp_path)
 	var zip_content_b64 = Marshalls.raw_to_base64(zip_content_bytes)
-	print(zip_content_b64)
 	DirAccess.remove_absolute(temp_path)
 	var resp = client.post('/apis/sdkendpoints/SDKEndpoints/Publish', { "ZipContent": zip_content_b64, "GameID": game_id }, username, password)
 	if !resp:
 		return
 	Utils.refresh_filesystem()
+	
+	var json = JSON.new()
+	var result = json.parse(resp)
+	var resp_data = json.data
+	
+	# set commit hash
+	settings.set_setting("planetary_processing/commit", resp_data["CommitHash"])
+	remote_changes = false
+	notify_property_list_changed()
+	
+	print("Published changes to Planetary Processing")
 
 func _recursive_scene_traversal(node, scenes_with_entity_node):
 	for child in node.get_children():
@@ -240,7 +263,15 @@ func _recursive_scene_traversal(node, scenes_with_entity_node):
 		_recursive_scene_traversal(child, scenes_with_entity_node)
 	
 func _check_changes_from_pp():
-	print("Checking PP for changes...")
+	var resp = client.post('/apis/sdkendpoints/SDKEndpoints/LastUpdate', { "GameID": game_id }, username, password)
+	if !resp:
+		return
+	var json = JSON.new()
+	var result = json.parse(resp)
+	var data = json.data
+	var current_commit = settings.get_setting("planetary_processing/commit")
+	remote_changes = current_commit != data["CommitHash"]
+	notify_property_list_changed()
 
 func _enter_tree():
 	if not Engine.is_editor_hint():
