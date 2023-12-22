@@ -33,7 +33,8 @@ public partial class SDKNode : Node
 	
 	public void Message(Dictionary<string, dynamic> msg)
 	{
-		sdk.Connect("Hello Message");
+		sdk.Message(msg);
+		GD.Print("hello message");
 	}
 
 	public void Update()
@@ -50,7 +51,6 @@ public partial class SDKNode : Node
 			Entity entity = pair.Value;
 			Godot.Collections.Dictionary<string, Godot.Variant> gdEntity = new Godot.Collections.Dictionary<string, Godot.Variant>();
 
-			gdEntity["id"] = entity.id;
 			gdEntity["x"] = entity.x;
 			gdEntity["y"] = entity.y;
 			gdEntity["z"] = entity.z;
