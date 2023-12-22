@@ -3,8 +3,8 @@ extends Node
 
 const PPHTTPClient = preload("res://addons/planetary_processing/pp_editor_http_client.gd")
 const Utils = preload("res://addons/planetary_processing/pp_utils.gd")
+var SDKScript = preload("res://addons/planetary_processing/SDKNode.cs")
 
-signal authentication_successful(username)
 signal entity_state_changed(entity_id, new_state)
 
 static var base_path = "res://addons/planetary_processing/lua/"
@@ -21,23 +21,7 @@ var player_is_authenticated : bool = false
 var timer: Timer
 var timer_wait_in_s = 10
 var settings = EditorInterface.get_editor_settings() if Engine.is_editor_hint() else null
-
-func authenticate_player(username: String, password: String):
-	var sdk = load("res://addons/planetary_processing/SDKNode.cs")
-	print(sdk.new())
-	pass
-	# Create an instance of the SDK and pass the callback function
-	#SDK.new(game_id, username, password, _on_sdk_event)
-	#emit_signal("authentication_successful", game_id, username)
-	#return true
-
-# Callback function to handle SDK events
-func _on_sdk_event(data):
-	# Process the SDK event data as needed
-	print("SDK Event:", data)
-
-func update_entity_state(entity_id: int, new_state: Dictionary) -> void:
-	emit_signal("entity_state_changed", entity_id, new_state)
+var sdk_node
 
 func _ready():
 	if Engine.is_editor_hint():
@@ -46,14 +30,28 @@ func _ready():
 		game_id != "",
 		"Planetary Processing Game ID not configured"
 	)
-	
-	var sdk_script = load("res://addons/planetary_processing/SDKNode.cs")
-	var sdk_node = sdk_script.new()
-	sdk_node.Login(game_id, username, password)
-	
-	# for testing, call authenticate on ready - will be up to the developer to
-	# trigger auth how they see fit in real games
-	authenticate_player("any_username", "any_password")
+	sdk_node = SDKScript.new()
+	sdk_node.SetGameID(game_id)
+	# temporary for testing
+	authenticate_player(username, password)
+
+func authenticate_player(username: String, password: String):
+	var err : String = sdk_node.Connect(username, password)
+	if err:
+		player_is_authenticated = false
+		assert(false, err)
+	player_is_authenticated = true
+	return true
+
+func _process(delta):
+	if Engine.is_editor_hint() or !sdk_node or !player_is_authenticated:
+		return
+	sdk_node.Update()
+	# iterate through entities, emit changes
+	print(sdk_node.GetEntities())
+
+func update_entity_state(entity_id: int, new_state: Dictionary) -> void:
+	emit_signal("entity_state_changed", entity_id, new_state)
 
 func _get_property_list() -> Array[Dictionary]:
 	var properties: Array[Dictionary] = []
