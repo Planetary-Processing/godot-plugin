@@ -15,6 +15,7 @@ var username = ''
 var password = ''
 var logged_in = false
 var remote_changes = false
+var registered_entities = []
 
 var client = PPHTTPClient.new()
 var player_is_authenticated : bool = false
@@ -43,15 +44,36 @@ func authenticate_player(username: String, password: String):
 	player_is_authenticated = true
 	return true
 
+func register_entity(entity_id: String):
+	registered_entities.append(entity_id)
+	print("Registered entity with ID " + entity_id)
+
+func deregister_entity(entity_id: String):
+	while registered_entities.find(entity_id) != -1:
+		registered_entities.erase(entity_id)
+	print("Deregistered entity with ID " + entity_id)
+
 func _process(delta):
 	if Engine.is_editor_hint() or !sdk_node or !player_is_authenticated:
 		return
 	sdk_node.Update()
 	# iterate through entities, emit changes
 	var entities = sdk_node.GetEntities()
-	for entity_id in entities.keys():
+	var entity_ids = entities.keys()
+	var to_remove_entity_ids = registered_entities.duplicate()
+	for entity_id in entity_ids:
+		to_remove_entity_ids.erase(entity_id)
 		var entity_data = entities[entity_id]
-		emit_signal("entity_state_changed", entity_id, entity_data)
+		if registered_entities.find(entity_id) != -1:
+			emit_signal("entity_state_changed", entity_id, entity_data)
+		else:
+			emit_signal("new_entity", entity_id, entity_data)
+			print('Fired new_entity: ' + entity_id)
+	# remove missing entities
+	for entity_id in to_remove_entity_ids:
+		emit_signal("remove_entity", entity_id)
+		print('Fired remove_entity: ' + entity_id)
+	registered_entities = entity_ids
 
 func _get_property_list() -> Array[Dictionary]:
 	var properties: Array[Dictionary] = []

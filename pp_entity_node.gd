@@ -12,7 +12,7 @@ static var base_path = "res://addons/planetary_processing/lua/entity/"
 @export_multiline var data = ''
 @export var chunkloader = false
 var lua_path = ''
-var entity_id = ''
+var entity_id = 'placeholder_entity_id'
 
 func _on_button_pressed(text:String):
 	var filename = get_parent().name
@@ -46,9 +46,9 @@ func _get_property_list() -> Array[Dictionary]:
 func _enter_tree():
 	if Engine.is_editor_hint():
 		return
-		
 	var pp_root_node = get_tree().current_scene.get_node('PPRootNode')
-	assert(pp_root_node, "PPRootNode not present as direct child of scene")
+	assert(pp_root_node, "PPRootNode not present as direct child of parent scene")
+	# connect to events from the root
 	pp_root_node.entity_state_changed.connect(_on_entity_state_change)
 	
 func _on_entity_state_change(new_entity_id, new_state):
