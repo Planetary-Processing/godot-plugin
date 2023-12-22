@@ -3,6 +3,8 @@ extends Node
 
 const Utils = preload("res://addons/planetary_processing/pp_utils.gd")
 
+signal state_changed(new_state)
+
 static var is_entity_node: bool = true
 static var base_path = "res://addons/planetary_processing/lua/entity/" 
 
@@ -10,6 +12,7 @@ static var base_path = "res://addons/planetary_processing/lua/entity/"
 @export_multiline var data = ''
 @export var chunkloader = false
 var lua_path = ''
+var entity_id = ''
 
 func _on_button_pressed(text:String):
 	var filename = get_parent().name
@@ -39,3 +42,15 @@ func _get_property_list() -> Array[Dictionary]:
 			"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR if is_instance else PROPERTY_USAGE_DEFAULT
 		})
 	return properties
+
+func _enter_tree():
+	if Engine.is_editor_hint():
+		return
+		
+	var pp_root_node = get_tree().current_scene.get_node('PPRootNode')
+	assert(pp_root_node, "PPRootNode not present as direct child of scene")
+	pp_root_node.entity_state_changed.connect(_on_entity_state_change)
+	
+func _on_entity_state_change(new_entity_id, new_state):
+	if new_entity_id == entity_id:
+		emit_signal("state_changed", new_state)
