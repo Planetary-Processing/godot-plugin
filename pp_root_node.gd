@@ -44,14 +44,13 @@ func authenticate_player(username: String, password: String):
 	player_is_authenticated = true
 	return true
 
-func register_entity(entity_id: String):
-	registered_entities.append(entity_id)
-	print("Registered entity with ID " + entity_id)
-
-func deregister_entity(entity_id: String):
-	while registered_entities.find(entity_id) != -1:
-		registered_entities.erase(entity_id)
-	print("Deregistered entity with ID " + entity_id)
+func send_message(username: String, password: String):
+	var err : String = sdk_node.Connect(username, password)
+	if err:
+		player_is_authenticated = false
+		assert(false, err)
+	player_is_authenticated = true
+	return true
 
 func _process(delta):
 	if Engine.is_editor_hint() or !sdk_node or !player_is_authenticated:
