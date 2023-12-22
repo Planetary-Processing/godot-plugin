@@ -12,7 +12,10 @@ static var base_path = "res://addons/planetary_processing/lua/entity/"
 @export_multiline var data = ''
 @export var chunkloader = false
 var lua_path = ''
-var entity_id = 'placeholder_entity_id'
+var entity_id = ''
+var previous_position = Vector3.ZERO
+
+var pp_root_node
 
 func _on_button_pressed(text:String):
 	var filename = get_parent().name
@@ -46,11 +49,28 @@ func _get_property_list() -> Array[Dictionary]:
 func _enter_tree():
 	if Engine.is_editor_hint():
 		return
-	var pp_root_node = get_tree().current_scene.get_node('PPRootNode')
+	pp_root_node = get_tree().current_scene.get_node('PPRootNode')
 	assert(pp_root_node, "PPRootNode not present as direct child of parent scene")
 	# connect to events from the root
 	pp_root_node.entity_state_changed.connect(_on_entity_state_change)
 	
 func _on_entity_state_change(new_entity_id, new_state):
+	# TEMPORARY FOR TESTING
+	if new_state["type"] == "player":
+		entity_id = new_entity_id
+	
 	if new_entity_id == entity_id:
 		emit_signal("state_changed", new_state)
+		
+# TEMPORARY FOR TESTING
+func _process(delta):
+	if Engine.is_editor_hint():
+		return
+	var current_position = get_parent().transform.origin
+	var position_change = current_position - previous_position
+	previous_position = current_position
+	pp_root_node.message({
+		"x": position_change[0],
+		"y": position_change[1],
+		"z": position_change[2]
+	})
