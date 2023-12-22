@@ -48,10 +48,10 @@ func _process(delta):
 		return
 	sdk_node.Update()
 	# iterate through entities, emit changes
-	print(sdk_node.GetEntities())
-
-func update_entity_state(entity_id: int, new_state: Dictionary) -> void:
-	emit_signal("entity_state_changed", entity_id, new_state)
+	var entities = sdk_node.GetEntities()
+	for entity_id in entities.keys():
+		var entity_data = entities[entity_id]
+		emit_signal("entity_state_changed", entity_id, entity_data)
 
 func _get_property_list() -> Array[Dictionary]:
 	var properties: Array[Dictionary] = []
