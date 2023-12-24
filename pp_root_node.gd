@@ -44,13 +44,9 @@ func authenticate_player(username: String, password: String):
 	player_is_authenticated = true
 	return true
 
-func send_message(username: String, password: String):
-	var err : String = sdk_node.Connect(username, password)
-	if err:
-		player_is_authenticated = false
-		assert(false, err)
-	player_is_authenticated = true
-	return true
+func message(msg):
+	print(JSON.stringify(msg))
+	sdk_node.Message(JSON.stringify(msg))
 
 func _process(delta):
 	if Engine.is_editor_hint() or !sdk_node or !player_is_authenticated:

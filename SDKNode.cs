@@ -31,10 +31,14 @@ public partial class SDKNode : Node
 		}
 	}
 	
-	public void Message(Dictionary<string, dynamic> msg)
+	public void Message(string json)
 	{
-		sdk.Message(msg);
-		GD.Print("hello message");
+		Dictionary<string, dynamic> message = new Dictionary<string, dynamic>
+		{
+			{"json", json}
+		};
+
+		sdk.Message(message);
 	}
 
 	public void Update()
