@@ -31,13 +31,14 @@ public partial class SDKNode : Node
 		}
 	}
 	
-	public void Message(string json)
+	public void Message(Godot.Collections.Dictionary<string, Godot.Variant> msg)
 	{
-		Dictionary<string, dynamic> message = new Dictionary<string, dynamic>
+		Dictionary<string, dynamic> message = new Dictionary<string, dynamic>();
+		foreach (var key in msg.Keys)
 		{
-			{"json", json}
-		};
-
+			dynamic value = msg[key];
+			message[key] = value;
+		}
 		sdk.Message(message);
 	}
 
