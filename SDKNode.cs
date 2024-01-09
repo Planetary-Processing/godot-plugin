@@ -37,9 +37,37 @@ public partial class SDKNode : Node
 		foreach (var key in msg.Keys)
 		{
 			dynamic value = msg[key];
-			message[key] = value;
+			message[key] = ConvertGodotVariant(value);
 		}
 		sdk.Message(message);
+	}
+	
+	private dynamic ConvertGodotVariant(Godot.Variant value)
+	{
+		switch (value.VariantType)
+		{
+			case Godot.Variant.Type.Nil:
+				return null;
+			case Godot.Variant.Type.Bool:
+				return value.As<bool>();
+			case Godot.Variant.Type.Int:
+				return value.As<long>();
+			case Godot.Variant.Type.Float:
+				return value.As<double>();
+			case Godot.Variant.Type.String:
+				return value.As<string>();
+			case Godot.Variant.Type.Dictionary:
+				var godotDict = value.As<Godot.Collections.Dictionary<string, Godot.Variant>>();
+				var csharpDict = new Dictionary<string, dynamic>();
+				foreach (var dictKey in godotDict.Keys)
+				{
+					dynamic dictValue = ConvertGodotVariant(godotDict[dictKey]);
+					csharpDict[dictKey] = dictValue;
+				}
+				return csharpDict;
+			default:
+				return null;
+		}
 	}
 
 	public void Update()
