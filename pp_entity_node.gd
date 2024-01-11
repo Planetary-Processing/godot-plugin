@@ -19,13 +19,15 @@ var previous_position = Vector3.ZERO
 var pp_root_node
 
 func _on_button_pressed(text:String):
-	var filename = get_parent().name
-	var filepath = base_path + filename + ".lua"
+	assert(
+		type, "no type provided"
+	)
+	var filepath = base_path + type + ".lua"
 	assert(
 		not FileAccess.file_exists(filepath),
-		"lua file named " + filename + ".lua already exists"
+		"lua file named " + type + ".lua already exists"
 	)
-	Utils.write_lua_file(filepath, "-- Dummy content for " + filename + ".lua")
+	Utils.write_string_to_file(filepath, "-- Dummy content for " + type + ".lua")
 	Utils.refresh_filesystem()
 	lua_path = filepath
 
