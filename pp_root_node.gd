@@ -251,11 +251,10 @@ func _publish_to_pp():
 			var result = json.parse(scene_instance.data)
 			assert(result == OK, 'invalid json found in data field of entity: ' + scene_instance_parent.name)
 			data = json.data
-		var lua_path_array = scene_instance.lua_path.split('/')
 		entity_init_data.append({
 			'data': data,
 			'chunkloader': scene_instance.chunkloader,
-			'lua_file': lua_path_array[lua_path_array.size() - 1],
+			'type': scene_instance.type,
 			'position': scene_instance_parent.transform.origin
 		})
 		
