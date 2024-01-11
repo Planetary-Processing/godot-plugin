@@ -11,6 +11,7 @@ static var base_path = "res://addons/planetary_processing/lua/entity/"
 @export_category("Entity Properties")
 @export_multiline var data = ''
 @export var chunkloader = false
+@export var type = ''
 var lua_path = ''
 var entity_id = ''
 var previous_position = Vector3.ZERO
@@ -48,6 +49,14 @@ func _get_property_list() -> Array[Dictionary]:
 
 func _enter_tree():
 	if Engine.is_editor_hint():
+		if not type:
+			# set the default type value based on the name
+			type = get_parent().name
+		if not lua_path:
+			# select existing lua file for lua path if exists
+			var filepath = base_path + type + ".lua"
+			if FileAccess.file_exists(filepath):
+				lua_path = filepath
 		return
 	pp_root_node = get_tree().current_scene.get_node('PPRootNode')
 	assert(pp_root_node, "PPRootNode not present as direct child of parent scene")
