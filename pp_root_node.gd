@@ -6,6 +6,9 @@ const Utils = preload("res://addons/planetary_processing/pp_utils.gd")
 var SDKScript = preload("res://addons/planetary_processing/SDKNode.cs")
 
 signal entity_state_changed(entity_id, new_state)
+signal new_player_entity(entity_id, state)
+signal new_entity(entity_id, state)
+signal remove_entity(entity_id)
 
 static var base_path = "res://addons/planetary_processing/lua/"
 
@@ -18,7 +21,7 @@ var remote_changes = false
 var registered_entities = []
 
 var client = PPHTTPClient.new()
-var player_is_authenticated : bool = false
+var player_uuid = null
 var timer: Timer
 var timer_wait_in_s = 10
 var settings = EditorInterface.get_editor_settings() if Engine.is_editor_hint() else null
@@ -39,16 +42,16 @@ func _ready():
 func authenticate_player(username: String, password: String):
 	var err : String = sdk_node.Connect(username, password)
 	if err:
-		player_is_authenticated = false
+		player_uuid = null
 		assert(false, err)
-	player_is_authenticated = true
+	player_uuid = sdk_node.GetUUID()
 	return true
 
 func message(msg):
 	sdk_node.Message(msg)
 
 func _process(delta):
-	if Engine.is_editor_hint() or !sdk_node or !player_is_authenticated:
+	if Engine.is_editor_hint() or !sdk_node or !player_uuid:
 		return
 	sdk_node.Update()
 	# iterate through entities, emit changes
@@ -61,8 +64,12 @@ func _process(delta):
 		if registered_entities.find(entity_id) != -1:
 			emit_signal("entity_state_changed", entity_id, entity_data)
 		else:
-			emit_signal("new_entity", entity_id, entity_data)
-			print('Fired new_entity: ' + entity_id)
+			if entity_id == player_uuid:
+				emit_signal("new_player_entity", player_uuid, entity_data)
+				print('Fired new_player_entity: ' + player_uuid)
+			else:
+				emit_signal("new_entity", entity_id, entity_data)
+				print('Fired new_entity: ' + entity_id)
 	# remove missing entities
 	for entity_id in to_remove_entity_ids:
 		emit_signal("remove_entity", entity_id)

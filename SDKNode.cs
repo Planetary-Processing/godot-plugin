@@ -31,6 +31,11 @@ public partial class SDKNode : Node
 		}
 	}
 	
+	public string GetUUID()
+	{
+		return sdk.UUID;
+	}
+	
 	public void Message(Godot.Collections.Dictionary<string, Godot.Variant> msg)
 	{
 		Dictionary<string, dynamic> message = new Dictionary<string, dynamic>();

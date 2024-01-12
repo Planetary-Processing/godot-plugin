@@ -79,10 +79,6 @@ func _enter_tree():
 	pp_root_node.entity_state_changed.connect(_on_entity_state_change)
 	
 func _on_entity_state_change(new_entity_id, new_state):
-	# TEMPORARY FOR TESTING
-	if new_state["type"] == "player":
-		entity_id = new_entity_id
-	
 	if new_entity_id == entity_id:
 		emit_signal("state_changed", new_state)
 		
