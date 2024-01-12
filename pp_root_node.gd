@@ -36,6 +36,8 @@ func _ready():
 	)
 	sdk_node = SDKScript.new()
 	sdk_node.SetGameID(game_id)
+	
+func development_test_auth():
 	# temporary for testing
 	authenticate_player(username, password)
 
@@ -259,7 +261,9 @@ func _publish_to_pp():
 			'data': data,
 			'chunkloader': entity_node.chunkloader,
 			'type': entity_node.type,
-			'position': scene_instance.transform.origin
+			'x': scene_instance.global_transform.origin.x,
+			'y': scene_instance.global_transform.origin.y,
+			'z': scene_instance.global_transform.origin.z
 		})
 		
 	var data = JSON.stringify(entity_init_data)
