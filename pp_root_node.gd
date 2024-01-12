@@ -237,25 +237,22 @@ func _fetch_from_pp():
 	return files_dict
 
 func _publish_to_pp():
-	var scenes_with_entity_node : Array = []
-	var root = get_tree().get_edited_scene_root()
-
-	_recursive_scene_traversal(root, scenes_with_entity_node)
+	var entity_nodes = _get_entity_nodes()
 	
 	var entity_init_data = []
-	for scene_instance in scenes_with_entity_node:
-		var scene_instance_parent = scene_instance.get_parent()
+	for entity_node in entity_nodes:
+		var scene_instance = entity_node.get_parent()
 		var data = {}
-		if scene_instance.data:
+		if entity_node.data:
 			var json = JSON.new()
-			var result = json.parse(scene_instance.data)
-			assert(result == OK, 'invalid json found in data field of entity: ' + scene_instance_parent.name)
+			var result = json.parse(entity_node.data)
+			assert(result == OK, 'invalid json found in data field of entity: ' + scene_instance.name)
 			data = json.data
 		entity_init_data.append({
 			'data': data,
-			'chunkloader': scene_instance.chunkloader,
-			'type': scene_instance.type,
-			'position': scene_instance_parent.transform.origin
+			'chunkloader': entity_node.chunkloader,
+			'type': entity_node.type,
+			'position': scene_instance.transform.origin
 		})
 		
 	var data = JSON.stringify(entity_init_data)
@@ -281,12 +278,30 @@ func _publish_to_pp():
 	
 	print("Published changes to Planetary Processing")
 
-func _recursive_scene_traversal(node, scenes_with_entity_node):
+func _get_entity_nodes():
+	var entity_nodes : Array = []
+	var root = get_tree().get_edited_scene_root()
+
+	_recursive_scene_entity_traversal(root, entity_nodes)
+	return entity_nodes
+
+func _recursive_scene_entity_traversal(node, entity_nodes):
 	for child in node.get_children():
 		if 'is_entity_node' in child and child.is_entity_node:
-			scenes_with_entity_node.append(child)
+			entity_nodes.append(child)
 			break
-		_recursive_scene_traversal(child, scenes_with_entity_node)
+		_recursive_scene_entity_traversal(child, entity_nodes)
+
+func _remove_all_entity_scenes():
+	var root = get_tree().get_root()
+	_recursive_scene_entity_removal(root)
+
+func _recursive_scene_entity_removal(node):
+	for child in node.get_children():
+		if 'is_entity_node' in child and child.is_entity_node:
+			node.queue_free()
+			break
+		_recursive_scene_entity_removal(child)
 	
 func _check_changes_from_pp():
 	var resp = client.post('/apis/sdkendpoints/SDKEndpoints/LastUpdate', { "GameID": game_id }, username, password)
@@ -301,6 +316,7 @@ func _check_changes_from_pp():
 
 func _enter_tree():
 	if not Engine.is_editor_hint():
+		_remove_all_entity_scenes()
 		return
 	
 	timer = Timer.new()
