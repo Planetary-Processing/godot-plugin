@@ -82,6 +82,7 @@ func _parseResponse():
 
 	var response_code = client.get_response_code()
 	if response_code < 200 || response_code >= 300:
+		print(client.get_response_headers())
 		_setError("HTTP Error status code: " + str(response_code))
 		return
 	return responseByteArray
