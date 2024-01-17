@@ -1,3 +1,10 @@
+static var reference_tag = ""
+static var reference_hint = ""
+
+static func _init_static_variables():
+	reference_tag = "<Reference Include=\"Planetary\">"
+	reference_hint = "<HintPath>addons/planetary_processing/sdk/csharp-sdk.dll</HintPath>"
+
 static func write_lua_file(file_path, bytes):
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	file.store_buffer(bytes)
@@ -6,9 +13,9 @@ static func write_lua_file(file_path, bytes):
 
 static func write_string_to_file(file_path, content):
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
-	print("Stored file: ", file_path)
 	file.store_string(content)
 	file.close()
+	print("Stored file: ", file_path)
 
 static func refresh_filesystem():
 	if Engine.is_editor_hint():
@@ -63,3 +70,38 @@ static func find_files_by_extension(extension, path = "res://"):
 		if file_name.to_lower().ends_with(extension):
 			files.append(file_name)
 	return files
+
+static func get_csproj_content(csproj_path):
+	var file := FileAccess.open(csproj_path, FileAccess.READ)
+	assert(file, "csproj file could not be opened: " + csproj_path)
+
+	var csproj_content = file.get_as_text()
+	file.close()
+	return csproj_content
+
+static func csproj_planetary_reference_exists(csproj_path):
+	_init_static_variables()
+	var csproj_content = get_csproj_content(csproj_path)
+	return csproj_content.find(reference_tag) != -1 and csproj_content.find(reference_hint) != -1
+
+static func add_planetary_csproj_ref(csproj_path):
+	_init_static_variables()
+	var csproj_content = get_csproj_content(csproj_path)
+
+	var item_group_exists = csproj_content.find("<ItemGroup>") != -1
+	var reference_exists = csproj_planetary_reference_exists(csproj_path)
+	var reference_string = reference_tag + "\n      " + reference_hint + "\n    </Reference>\n"
+	if item_group_exists and reference_exists:
+		return
+	if not item_group_exists:
+		var item_group_tag = "  <ItemGroup>\n    " + reference_string + "  </ItemGroup>"
+		csproj_content = csproj_content.replace("</PropertyGroup>", "</PropertyGroup>\n" + item_group_tag)
+	elif not reference_exists:
+		var item_group_pos = csproj_content.find("<ItemGroup>")
+		var item_group_end_pos = csproj_content.find("</ItemGroup>", item_group_pos)
+		csproj_content = csproj_content.insert(item_group_end_pos, "  " + reference_string + "  ")
+
+	var csproj_file = FileAccess.open(csproj_path, FileAccess.WRITE)
+	csproj_file.store_string(csproj_content)
+	csproj_file.close()
+	print("Updated CS Proj file: ", csproj_path)

@@ -20,6 +20,7 @@ var logged_in = false
 var remote_changes = false
 var registered_entities = []
 
+var csproj_reference_exists = false
 var client = PPHTTPClient.new()
 var player_uuid = null
 var timer: Timer
@@ -121,6 +122,12 @@ func _get_property_list() -> Array[Dictionary]:
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT
 		})
+	if not csproj_reference_exists:
+		properties.append({
+			"name": "pp_button_add_csproj_reference",
+			"type": TYPE_STRING,
+			"usage": PROPERTY_USAGE_DEFAULT
+		})
 	return properties
 
 func _validate_fields():
@@ -148,6 +155,9 @@ func _validate_fields():
 	}
 
 func _on_button_pressed(text:String):
+	if text.to_lower() == "add csproj reference":
+		_on_csproj_button_pressed()
+		return
 	var validation_result = _validate_fields()
 	assert(validation_result.valid, validation_result.message)
 	if text.to_lower() == "login":
@@ -198,6 +208,15 @@ func _on_fetch_button_pressed():
 
 func _on_publish_button_pressed():
 	_publish_to_pp()
+
+func _get_csharp_error_msg():
+	return "C# solution not created. Trigger Project > Tools > C# > Create C# Solution"
+
+func _on_csproj_button_pressed():
+	var csproj_files = Utils.find_files_by_extension(".csproj")
+	assert(len(csproj_files), _get_csharp_error_msg())
+	Utils.add_planetary_csproj_ref(csproj_files[0])
+	notify_property_list_changed()
 
 func _on_timer():
 	if not logged_in:
@@ -334,9 +353,13 @@ func _enter_tree():
 	timer.start()
 	
 	# check for existence of cs proj / sln files
-	var error_msg = "C# solution not created. Trigger Project > Tools > C# > Create C# Solution"
-	assert(len(Utils.find_files_by_extension(".csproj")), error_msg)
-	assert(len(Utils.find_files_by_extension(".sln")), error_msg)
+	var csproj_files = Utils.find_files_by_extension(".csproj")
+	csproj_reference_exists = false
+	assert(len(csproj_files), _get_csharp_error_msg())
+	assert(len(Utils.find_files_by_extension(".sln")), _get_csharp_error_msg())
+	csproj_reference_exists = Utils.csproj_planetary_reference_exists(csproj_files[0])
+	notify_property_list_changed()
+	assert(csproj_reference_exists, "Planetary Processing reference does not exist in " + csproj_files[0] + "\nClick \"Add Csproj Reference\" in the PPRootNode inspector to add the reference.")
 
 func _exit_tree():
 	if not Engine.is_editor_hint():
