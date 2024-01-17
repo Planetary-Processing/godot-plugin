@@ -36,10 +36,6 @@ func _ready():
 	)
 	sdk_node = SDKScript.new()
 	sdk_node.SetGameID(game_id)
-	
-func development_test_auth():
-	# temporary for testing
-	authenticate_player(username, password)
 
 func authenticate_player(username: String, password: String):
 	var err : String = sdk_node.Connect(username, password)
@@ -336,6 +332,11 @@ func _enter_tree():
 	timer.connect("timeout", _on_timer)
 	add_child(timer)
 	timer.start()
+	
+	# check for existence of cs proj / sln files
+	var error_msg = "C# solution not created. Trigger Project > Tools > C# > Create C# Solution"
+	assert(len(Utils.find_files_by_extension(".csproj")), error_msg)
+	assert(len(Utils.find_files_by_extension(".sln")), error_msg)
 
 func _exit_tree():
 	if not Engine.is_editor_hint():

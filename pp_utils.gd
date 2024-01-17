@@ -55,3 +55,11 @@ static func add_files_to_zip(zip_packer, directory_path, relative_path) -> Error
 		var absolute_dir_path = directory_path + "/" + dir_name
 		add_files_to_zip(zip_packer, absolute_dir_path, dir_path)
 	return OK
+
+static func find_files_by_extension(extension, path = "res://"):
+	var dir = DirAccess.open(path)
+	var files = []
+	for file_name in dir.get_files():
+		if file_name.to_lower().ends_with(extension):
+			files.append(file_name)
+	return files
