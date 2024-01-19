@@ -41,11 +41,11 @@ func _get_property_list() -> Array[Dictionary]:
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT
 		})
-	properties.append({
-		"name": "lua_path",
-		"type": TYPE_STRING,
-		"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR
-	})
+		properties.append({
+			"name": "lua_path",
+			"type": TYPE_STRING,
+			"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR
+		})
 	return properties
 
 func _set_type(new_type: String):
