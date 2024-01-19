@@ -31,6 +31,11 @@ public partial class SDKNode : Node
 		}
 	}
 	
+	public bool GetIsConnected()
+	{
+		return sdk.IsConnected();
+	}
+	
 	public string GetUUID()
 	{
 		return sdk.UUID;
