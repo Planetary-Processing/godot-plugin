@@ -65,7 +65,6 @@ func authenticate_player(username: String, password: String):
 		emit_signal("player_authentication_error", err)
 		return
 	player_uuid = sdk_node.GetUUID()
-	print(player_uuid)
 	emit_signal("player_authenticated", player_uuid)
 
 func message(msg):
