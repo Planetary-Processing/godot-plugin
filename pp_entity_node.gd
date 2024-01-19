@@ -50,11 +50,12 @@ func _get_property_list() -> Array[Dictionary]:
 
 func _set_type(new_type: String):
 	type = new_type
-	if not type:
-		lua_path = ''
-	else:
-		lua_path = base_path + type + ".lua"
-		print("Lua path set to " + lua_path)
+	if Engine.is_editor_hint() and is_inside_tree():
+		if not type:
+			lua_path = ''
+		else:
+			lua_path = base_path + type + ".lua"
+			print("Lua path set to " + lua_path)
 
 func _get_type():
 	return type
