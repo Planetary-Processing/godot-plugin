@@ -15,6 +15,7 @@ var type = '' : set = _set_type, get = _get_type
 var lua_path = ''
 var entity_id = ''
 var pp_root_node
+var is_instance
 
 func _on_button_pressed(text:String):
 	assert(
@@ -29,24 +30,22 @@ func _on_button_pressed(text:String):
 
 func _get_property_list() -> Array[Dictionary]:
 	var properties: Array[Dictionary] = []
-	if self.is_inside_tree(): 
-		var is_instance = get_tree().get_edited_scene_root() != get_parent()
+	properties.append({
+		"name": "type",
+		"type": TYPE_STRING,
+		"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR if is_instance else PROPERTY_USAGE_DEFAULT
+	})
+	if not is_instance:
 		properties.append({
-			"name": "type",
+			"name": "pp_button_generate_lua_skeleton_file",
 			"type": TYPE_STRING,
-			"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR if is_instance else PROPERTY_USAGE_DEFAULT
+			"usage": PROPERTY_USAGE_DEFAULT
 		})
-		if not is_instance:
-			properties.append({
-				"name": "pp_button_generate_lua_skeleton_file",
-				"type": TYPE_STRING,
-				"usage": PROPERTY_USAGE_DEFAULT
-			})
-		properties.append({
-			"name": "lua_path",
-			"type": TYPE_STRING,
-			"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR
-		})
+	properties.append({
+		"name": "lua_path",
+		"type": TYPE_STRING,
+		"usage": PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR
+	})
 	return properties
 
 func _set_type(new_type: String):
@@ -61,15 +60,17 @@ func _get_type():
 	return type
 
 func _enter_tree():
+	is_instance = get_tree().get_edited_scene_root() != get_parent()
 	if Engine.is_editor_hint():
-		if not type:
-			# set the default type value based on the name
-			type = get_parent().name
-		if not lua_path:
-			# select existing lua file for lua path if exists
-			var filepath = base_path + type + ".lua"
-			if FileAccess.file_exists(filepath):
-				lua_path = filepath
+		if not is_instance:
+			if not type:
+				# set the default type value based on the name
+				type = get_parent().name
+			if not lua_path:
+				# select existing lua file for lua path if exists
+				var filepath = base_path + type + ".lua"
+				if FileAccess.file_exists(filepath):
+					lua_path = filepath
 		return
 	pp_root_node = get_tree().current_scene.get_node('PPRootNode')
 	assert(pp_root_node, "PPRootNode not present as direct child of parent scene")
