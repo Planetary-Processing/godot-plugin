@@ -8,6 +8,11 @@ var SDKScript = preload("res://addons/planetary_processing/SDKNode.cs")
 signal entity_state_changed(entity_id, new_state)
 signal new_player_entity(entity_id, state)
 signal new_entity(entity_id, state)
+signal player_authenticated(player_uuid)
+signal player_authentication_error(err)
+signal player_unauthenticated()
+signal player_connected()
+signal player_disconnected()
 signal remove_entity(entity_id)
 
 static var base_path = "res://addons/planetary_processing/lua/"
@@ -22,6 +27,7 @@ var registered_entities = []
 
 var csproj_reference_exists = false
 var client = PPHTTPClient.new()
+var player_is_connected = false
 var player_uuid = null
 var timer: Timer
 var timer_wait_in_s = 10
@@ -37,14 +43,30 @@ func _ready():
 	)
 	sdk_node = SDKScript.new()
 	sdk_node.SetGameID(game_id)
+	
+	var player_connected_timer = Timer.new()
+	add_child(player_connected_timer)
+	player_connected_timer.wait_time = 1.0
+	player_connected_timer.connect("timeout", _on_player_connected_timer_timeout)
+	player_connected_timer.start()
+
+func _on_player_connected_timer_timeout():
+	var new_player_is_connected = sdk_node.GetIsConnected()
+	if not player_is_connected and new_player_is_connected:
+		emit_signal("player_connected")
+	if player_is_connected and not new_player_is_connected:
+		emit_signal("player_disconnected")
+	player_is_connected = new_player_is_connected
 
 func authenticate_player(username: String, password: String):
 	var err : String = sdk_node.Connect(username, password)
 	if err:
 		player_uuid = null
-		assert(false, err)
+		emit_signal("player_authentication_error", err)
+		return
 	player_uuid = sdk_node.GetUUID()
-	return true
+	print(player_uuid)
+	emit_signal("player_authenticated", player_uuid)
 
 func message(msg):
 	sdk_node.Message(msg)
@@ -218,7 +240,7 @@ func _on_csproj_button_pressed():
 	Utils.add_planetary_csproj_ref(csproj_files[0])
 	notify_property_list_changed()
 
-func _on_timer():
+func _on_timer_timeout():
 	if not logged_in:
 		return
 	_check_changes_from_pp()
@@ -348,13 +370,14 @@ func _enter_tree():
 	timer = Timer.new()
 	timer.set_wait_time(timer_wait_in_s)
 	timer.set_one_shot(false)
-	timer.connect("timeout", _on_timer)
+	timer.connect("timeout", _on_timer_timeout)
 	add_child(timer)
 	timer.start()
 	
 	# check for existence of cs proj / sln files
 	var csproj_files = Utils.find_files_by_extension(".csproj")
 	csproj_reference_exists = false
+	notify_property_list_changed()
 	assert(len(csproj_files), _get_csharp_error_msg())
 	assert(len(Utils.find_files_by_extension(".sln")), _get_csharp_error_msg())
 	csproj_reference_exists = Utils.csproj_planetary_reference_exists(csproj_files[0])
@@ -364,6 +387,6 @@ func _enter_tree():
 func _exit_tree():
 	if not Engine.is_editor_hint():
 		return
-	timer.disconnect("timeout", _on_timer)
+	timer.disconnect("timeout", _on_timer_timeout)
 	remove_child(timer)
 	timer.free()
