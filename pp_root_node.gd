@@ -300,8 +300,8 @@ func _publish_to_pp():
 			'chunkloader': entity_node.chunkloader,
 			'type': entity_node.type,
 			'x': scene_instance.global_transform.origin.x,
-			'y': scene_instance.global_transform.origin.y,
-			'z': scene_instance.global_transform.origin.z
+			'z': scene_instance.global_transform.origin.y,
+			'y': scene_instance.global_transform.origin.z
 		})
 		
 	var data = JSON.stringify(entity_init_data)
