@@ -89,11 +89,12 @@ func _process(delta):
 				print('Fired new_player_entity: ' + player_uuid)
 			else:
 				emit_signal("new_entity", entity_id, entity_data)
-				print('Fired new_entity: ' + entity_id)
+				print('Fired new_entity: ' + entity_id, entity_data)
 	# remove missing entities
 	for entity_id in to_remove_entity_ids:
-		emit_signal("remove_entity", entity_id)
-		print('Fired remove_entity: ' + entity_id)
+		if entity_id != player_uuid:
+			emit_signal("remove_entity", entity_id)
+			print('Fired remove_entity: ' + entity_id)
 	registered_entities = entity_ids
 
 func _get_property_list() -> Array[Dictionary]:
@@ -143,6 +144,7 @@ func _get_property_list() -> Array[Dictionary]:
 			"type": TYPE_STRING,
 			"usage": PROPERTY_USAGE_DEFAULT
 		})
+		
 	if not csproj_reference_exists:
 		properties.append({
 			"name": "pp_button_add_csproj_reference",
