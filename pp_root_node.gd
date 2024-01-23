@@ -31,7 +31,7 @@ var player_is_connected = false
 var player_uuid = null
 var timer: Timer
 var timer_wait_in_s = 10
-var settings = EditorInterface.get_editor_settings() if Engine.is_editor_hint() else null
+var settings
 var sdk_node
 
 func _ready():
@@ -367,6 +367,9 @@ func _enter_tree():
 	if not Engine.is_editor_hint():
 		_remove_all_entity_scenes()
 		return
+	
+	var _editor_interface = Engine.get_singleton("EditorInterface")
+	settings = _editor_interface.get_editor_settings()
 	
 	timer = Timer.new()
 	timer.set_wait_time(timer_wait_in_s)
