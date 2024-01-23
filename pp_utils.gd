@@ -5,13 +5,17 @@ static func _init_static_variables():
 	reference_tag = "<Reference Include=\"Planetary\">"
 	reference_hint = "<HintPath>addons/planetary_processing/sdk/csharp-sdk.dll</HintPath>"
 
-static func write_lua_file(file_path, bytes):
+static func write_bytes_to_file(file_path, bytes):
+	var directory_path = file_path.get_base_dir()
+	DirAccess.make_dir_recursive_absolute(directory_path)
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	file.store_buffer(bytes)
 	file.close()
 	print("Stored file: ", file_path)
 
 static func write_string_to_file(file_path, content):
+	var directory_path = file_path.get_base_dir()
+	DirAccess.make_dir_recursive_absolute(directory_path)
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	file.store_string(content)
 	file.close()

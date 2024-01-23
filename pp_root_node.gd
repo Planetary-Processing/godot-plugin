@@ -225,7 +225,7 @@ func _on_fetch_button_pressed():
 	Utils.scrub_lua_files("res://addons/planetary_processing/lua/entity/")
 	for filename in fetched_data.keys():
 		var content = fetched_data[filename]
-		Utils.write_lua_file(base_path + filename, content)
+		Utils.write_bytes_to_file(base_path + filename, content)
 	
 	Utils.refresh_filesystem()
 
