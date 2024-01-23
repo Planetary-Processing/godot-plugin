@@ -16,5 +16,6 @@ func _enter_tree():
 
 func _exit_tree():
 	remove_custom_type("PPRootNode")
+	remove_custom_type("PPEntityNode")
 	if Engine.is_editor_hint():
 		remove_inspector_plugin(inspector_plugin)
