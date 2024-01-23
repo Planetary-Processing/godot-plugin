@@ -19,9 +19,8 @@ static func write_string_to_file(file_path, content):
 
 static func refresh_filesystem():
 	if Engine.is_editor_hint():
-		var _editor_plugin = Engine.get_singleton("EditorPlugin")
-		var interface = _editor_plugin.get_editor_interface()
-		var resource_filesystem = interface.get_resource_filesystem()
+		var _editor_interface = Engine.get_singleton("EditorInterface")
+		var resource_filesystem = _editor_interface.get_resource_filesystem()
 		resource_filesystem.scan()
 
 static func scrub_lua_files(path):
