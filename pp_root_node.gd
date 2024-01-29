@@ -216,6 +216,16 @@ func _on_logout_button_pressed():
 	notify_property_list_changed()
 
 func _on_fetch_button_pressed():
+	var _editor_interface = Engine.get_singleton("EditorInterface")
+	var main_control = _editor_interface.get_base_control()
+	var confirm_dialog = ConfirmationDialog.new()
+	confirm_dialog.dialog_text = "Fetching data will overwrite any unpublished changes you have made locally to your lua.
+	Do you wish to proceed?"
+	main_control.add_child(confirm_dialog)
+	confirm_dialog.connect("confirmed", _on_fetch_confirmed)
+	confirm_dialog.popup_centered()
+
+func _on_fetch_confirmed():
 	var fetched_data = _fetch_from_pp()
 	if !fetched_data:
 		return
@@ -230,7 +240,14 @@ func _on_fetch_button_pressed():
 	Utils.refresh_filesystem()
 
 func _on_publish_button_pressed():
-	_publish_to_pp()
+	var _editor_interface = Engine.get_singleton("EditorInterface")
+	var main_control = _editor_interface.get_base_control()
+	var confirm_dialog = ConfirmationDialog.new()
+	confirm_dialog.dialog_text = "Publishing data will create a new git commit to your game repository, consisting of the local contents of your lua directory.
+	Do you wish to proceed?"
+	main_control.add_child(confirm_dialog)
+	confirm_dialog.connect("confirmed", _publish_to_pp)
+	confirm_dialog.popup_centered()
 
 func _get_csharp_error_msg():
 	return "C# solution not created. Trigger Project > Tools > C# > Create C# Solution"
