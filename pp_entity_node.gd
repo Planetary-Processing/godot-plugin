@@ -6,7 +6,21 @@ const Utils = preload("res://addons/planetary_processing/pp_utils.gd")
 signal state_changed(new_state)
 
 static var is_entity_node: bool = true
-static var base_path = "res://addons/planetary_processing/lua/entity/" 
+
+func get_swarmplay_repo_directory() -> String:
+	if Engine.is_editor_hint():
+		var editor_settings = EditorInterface.get_editor_settings()
+		var swarmplay_repo_directory = editor_settings.get_setting("user/swarmplay_repo_directory")
+		print('here', editor_settings.get_setting("user/swarmplay_repo_directory"))
+		if swarmplay_repo_directory.strip_edges() == "":
+			assert(false, "The SwarmPlay repo directory path is not set.")
+
+		var dir_access = DirAccess.open(swarmplay_repo_directory)
+		if dir_access == null:
+			assert(false, "The SwarmPlay repo directory does not exist: " + swarmplay_repo_directory)
+		return swarmplay_repo_directory
+	return ""
+	
 
 @export_category("Entity Properties")
 @export_multiline var data = ''
@@ -25,7 +39,17 @@ func _on_button_pressed(text:String):
 		not FileAccess.file_exists(lua_path),
 		"lua file named " + type + ".lua already exists"
 	)
-	Utils.write_string_to_file(lua_path, "-- Dummy content for " + type + ".lua")
+	Utils.write_string_to_file(lua_path, "local function init(e)
+end
+
+local function update(e, dt)
+end
+
+local function message(e, msg)
+end
+
+return {init=init,update=update,message=message}
+")
 	Utils.refresh_filesystem()
 
 func _get_property_list() -> Array[Dictionary]:
@@ -49,18 +73,20 @@ func _get_property_list() -> Array[Dictionary]:
 	return properties
 
 func _set_type(new_type: String):
+	var base_path = get_swarmplay_repo_directory()
 	type = new_type
 	if Engine.is_editor_hint() and is_inside_tree():
 		if not type:
 			lua_path = ''
 		else:
-			lua_path = base_path + type + ".lua"
+			lua_path = base_path + "/entity/" + type + ".lua"
 			print("Lua path set to " + lua_path)
 
 func _get_type():
 	return type
 
 func _enter_tree():
+	var base_path = get_swarmplay_repo_directory()
 	is_instance = get_tree().get_edited_scene_root() != get_parent()
 	if Engine.is_editor_hint():
 		if not is_instance:

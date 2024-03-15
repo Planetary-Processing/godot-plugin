@@ -3,7 +3,7 @@
 const ERROR = 1
 const OK = 0
 
-var _host = "https://planetaryprocessing.io"
+var _host = "https://api.planetaryprocessing.io"
 var _base_path = "/_api/golang.planetaryprocessing.io"
 var _port = 443
 var _error = ""
