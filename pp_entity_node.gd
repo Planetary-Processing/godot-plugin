@@ -11,7 +11,6 @@ func get_swarmplay_repo_directory() -> String:
 	if Engine.is_editor_hint():
 		var editor_settings = EditorInterface.get_editor_settings()
 		var swarmplay_repo_directory = editor_settings.get_setting("user/swarmplay_repo_directory")
-		print('here', editor_settings.get_setting("user/swarmplay_repo_directory"))
 		if swarmplay_repo_directory.strip_edges() == "":
 			assert(false, "The SwarmPlay repo directory path is not set.")
 
@@ -95,7 +94,7 @@ func _enter_tree():
 				type = get_parent().name
 			if not lua_path:
 				# select existing lua file for lua path if exists
-				var filepath = base_path + type + ".lua"
+				var filepath = base_path + '/entity/' + type + ".lua"
 				if FileAccess.file_exists(filepath):
 					lua_path = filepath
 		return

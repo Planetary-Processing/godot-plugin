@@ -29,18 +29,20 @@ var player_is_connected = false
 var player_uuid = null
 var timer: Timer
 var timer_wait_in_s = 10
-var settings
 var sdk_node
 
 func _set_swarmplay_repo_directory(new_dir: String) -> void:
 	swarmplay_repo_directory = new_dir
-	print(new_dir)
 
 	if Engine.is_editor_hint():
+		var _editor_interface = Engine.get_singleton("EditorInterface")
+		var settings = _editor_interface.get_editor_settings()
 		settings.set_setting("user/swarmplay_repo_directory", new_dir)
 
 func _get_swarmplay_repo_directory() -> String:
 	if Engine.is_editor_hint():
+		var _editor_interface = Engine.get_singleton("EditorInterface")
+		var settings = _editor_interface.get_editor_settings()
 		return settings.get_setting("user/swarmplay_repo_directory")
 	return swarmplay_repo_directory
 
@@ -292,9 +294,7 @@ func _enter_tree():
 	if not Engine.is_editor_hint():
 		_remove_all_entity_scenes()
 		return
-	var _editor_interface = Engine.get_singleton("EditorInterface")
-	settings = _editor_interface.get_editor_settings()
-		
+
 	# check for existence of cs proj / sln files
 	var csproj_files = Utils.find_files_by_extension(".csproj")
 	csproj_reference_exists = false
