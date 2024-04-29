@@ -12,7 +12,7 @@ func _enter_tree():
 		var interface = get_editor_interface()
 		var settings = interface.get_editor_settings()
 		var textfile_extensions = settings.get_setting("docks/filesystem/textfile_extensions")
-		settings.set_setting("docks/filesystem/textfile_extensions", textfile_extensions + ',lua')
+		settings.set_setting("docks/filesystem/textfile_extensions", textfile_extensions + ',lua,csproj')
 
 func _exit_tree():
 	remove_custom_type("PPRootNode")

@@ -43,7 +43,8 @@ func _get_swarmplay_repo_directory() -> String:
 	if Engine.is_editor_hint():
 		var _editor_interface = Engine.get_singleton("EditorInterface")
 		var settings = _editor_interface.get_editor_settings()
-		return settings.get_setting("user/swarmplay_repo_directory")
+		var dir = settings.get_setting("user/swarmplay_repo_directory")
+		return dir if dir else ""
 	return swarmplay_repo_directory
 
 func _ready():
@@ -224,7 +225,7 @@ func _get_csharp_error_msg():
 func _on_csproj_button_pressed():
 	var csproj_files = Utils.find_files_by_extension(".csproj")
 	assert(len(csproj_files), _get_csharp_error_msg())
-	Utils.add_planetary_csproj_ref(csproj_files[0])
+	Utils.add_planetary_csproj_ref('res://' + csproj_files[0])
 	notify_property_list_changed()
 
 func _on_generate_init_json_button_pressed():

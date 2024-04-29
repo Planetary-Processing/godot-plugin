@@ -9,6 +9,8 @@ static func write_bytes_to_file(file_path, bytes):
 	var directory_path = file_path.get_base_dir()
 	DirAccess.make_dir_recursive_absolute(directory_path)
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
+	if FileAccess.get_open_error():
+		assert(false, "Error find_files_by_extension file: " + file_path)
 	file.store_buffer(bytes)
 	file.close()
 	print("Stored file: ", file_path)
@@ -17,6 +19,8 @@ static func write_string_to_file(file_path, content):
 	var directory_path = file_path.get_base_dir()
 	DirAccess.make_dir_recursive_absolute(directory_path)
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
+	if FileAccess.get_open_error():
+		assert(false, "Error opening file: " + file_path)
 	file.store_string(content)
 	file.close()
 	print("Stored file: ", file_path)
@@ -104,7 +108,4 @@ static func add_planetary_csproj_ref(csproj_path):
 		var item_group_end_pos = csproj_content.find("</ItemGroup>", item_group_pos)
 		csproj_content = csproj_content.insert(item_group_end_pos, "  " + reference_string + "  ")
 
-	var csproj_file = FileAccess.open(csproj_path, FileAccess.WRITE)
-	csproj_file.store_string(csproj_content)
-	csproj_file.close()
-	print("Updated CS Proj file: ", csproj_path)
+	write_string_to_file(csproj_path, csproj_content)
