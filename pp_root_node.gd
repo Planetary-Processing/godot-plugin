@@ -72,13 +72,23 @@ func _on_player_connected_timer_timeout():
 	player_is_connected = new_player_is_connected
 
 func authenticate_player(username: String, password: String):
+	var callable = Callable(self, "authenticate_player_thread")
+	var bound_callable = callable.bind(username, password)
+	var thread = Thread.new()
+	thread.start(bound_callable)
+	
+func authenticate_player_thread(username: String, password: String):
 	var err : String = sdk_node.Connect(username, password)
 	if err:
 		player_uuid = null
-		emit_signal("player_authentication_error", err)
+		var callable = Callable(self, "emit_signal")
+		var bound_callable = callable.bind("player_authentication_error", err)
+		bound_callable.call_deferred()
 		return
 	player_uuid = sdk_node.GetUUID()
-	emit_signal("player_authenticated", player_uuid)
+	var callable = Callable(self, "emit_signal")
+	var bound_callable = callable.bind("player_authenticated", player_uuid)
+	bound_callable.call_deferred()
 
 func message(msg):
 	sdk_node.Message(msg)

@@ -47,12 +47,12 @@ public partial class SDKNode : Node
 		foreach (var key in msg.Keys)
 		{
 			dynamic value = msg[key];
-			message[key] = ConvertGodotVariant(value);
+			message[key] = ConvertFromGodotVariant(value);
 		}
 		sdk.Message(message);
 	}
 	
-	private dynamic ConvertGodotVariant(Godot.Variant value)
+	private dynamic ConvertFromGodotVariant(Godot.Variant value)
 	{
 		switch (value.VariantType)
 		{
@@ -71,13 +71,52 @@ public partial class SDKNode : Node
 				var csharpDict = new Dictionary<string, dynamic>();
 				foreach (var dictKey in godotDict.Keys)
 				{
-					dynamic dictValue = ConvertGodotVariant(godotDict[dictKey]);
+					dynamic dictValue = ConvertFromGodotVariant(godotDict[dictKey]);
 					csharpDict[dictKey] = dictValue;
 				}
 				return csharpDict;
 			default:
 				return null;
 		}
+	}
+	
+	private Godot.Variant ConvertToGodotVariant(dynamic value)
+	{
+		switch (value.GetType().ToString())
+		{
+			case "System.Boolean":
+				return (bool)value;
+			case "System.Int32":
+				return (int)value;
+			case "System.Int64":
+				return (long)value;
+			case "System.Single":
+				return (float)value;
+			case "System.Double":
+				return (double)value;
+			case "System.String":
+				return (string)value;
+			case "System.Collections.Generic.Dictionary`2[System.String,System.Object]":
+				var csharpDict = (Dictionary<string, dynamic>)value;
+				var gdDict = new Godot.Collections.Dictionary<string, Godot.Variant>();
+				foreach (var kvp in csharpDict)
+				{
+					gdDict[kvp.Key] = ConvertToGodotVariant(kvp.Value);
+				}
+				return gdDict;
+			default:
+				return new Godot.Variant();
+		}
+	}
+	
+	private Godot.Collections.Dictionary<string, Godot.Variant> ConvertToGodotVariantDictionary(Dictionary<string, dynamic> dict)
+	{
+		var gdDict = new Godot.Collections.Dictionary<string, Godot.Variant>();
+		foreach (var kvp in dict)
+		{
+			gdDict[kvp.Key] = ConvertToGodotVariant(kvp.Value);
+		}
+		return gdDict;
 	}
 
 	public void Update()
@@ -97,7 +136,7 @@ public partial class SDKNode : Node
 			gdEntity["x"] = entity.x;
 			gdEntity["y"] = entity.y;
 			gdEntity["z"] = entity.z;
-			gdEntity["data"] = entity.data;
+			gdEntity["data"] = ConvertToGodotVariantDictionary(entity.data);
 			gdEntity["type"] = entity.type;
 
 			gdEntities[entity.id] = gdEntity;
