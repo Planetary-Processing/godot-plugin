@@ -79,29 +79,24 @@ public partial class SDKNode : Node
 				return null;
 		}
 	}
-	
+
 	private Godot.Variant ConvertToGodotVariant(dynamic value)
 	{
-		switch (value.GetType().ToString())
+		switch (value.ValueKind)
 		{
-			case "System.Boolean":
-				return (bool)value;
-			case "System.Int32":
-				return (int)value;
-			case "System.Int64":
-				return (long)value;
-			case "System.Single":
-				return (float)value;
-			case "System.Double":
-				return (double)value;
-			case "System.String":
-				return (string)value;
-			case "System.Collections.Generic.Dictionary`2[System.String,System.Object]":
-				var csharpDict = (Dictionary<string, dynamic>)value;
+			case JsonValueKind.True:
+				return true;
+			case JsonValueKind.False:
+				return false;
+			case JsonValueKind.Number:
+				return value.GetDouble();
+			case JsonValueKind.String:
+				return value.GetString();
+			case JsonValueKind.Object:
 				var gdDict = new Godot.Collections.Dictionary<string, Godot.Variant>();
-				foreach (var kvp in csharpDict)
+				foreach (var kvp in value.EnumerateObject())
 				{
-					gdDict[kvp.Key] = ConvertToGodotVariant(kvp.Value);
+					gdDict[kvp.Name] = ConvertToGodotVariant(kvp.Value);
 				}
 				return gdDict;
 			default:
