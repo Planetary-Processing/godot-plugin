@@ -76,6 +76,7 @@ func authenticate_player(username: String, password: String):
 	var bound_callable = callable.bind(username, password)
 	var thread = Thread.new()
 	thread.start(bound_callable)
+	thread.wait_to_finish()
 	
 func authenticate_player_thread(username: String, password: String):
 	var err : String = sdk_node.Connect(username, password)
