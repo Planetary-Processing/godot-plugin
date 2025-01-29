@@ -5,14 +5,17 @@ const PPHTTPClient = preload("res://addons/planetary_processing/pp_editor_http_c
 const Utils = preload("res://addons/planetary_processing/pp_utils.gd")
 var SDKScript = preload("res://addons/planetary_processing/SDKNode.cs")
 
+signal chunk_state_changed(chunk_id, new_state)
 signal entity_state_changed(entity_id, new_state)
 signal new_player_entity(entity_id, state)
+signal new_chunk(chunk_id, state)
 signal new_entity(entity_id, state)
 signal player_authenticated(player_uuid)
 signal player_authentication_error(err)
 signal player_unauthenticated()
 signal player_connected()
 signal player_disconnected()
+signal remove_chunk(chunk_id)
 signal remove_entity(entity_id)
 
 @export_category("Game Config")
@@ -21,7 +24,8 @@ var game_id = ''
 #var password = ''
 var logged_in = false
 var registered_entities = []
-
+var registered_chunks = []
+@export_range(64, 64, 65536) var Chunk_Size: int = 64
 
 var csproj_reference_exists = false
 var client = PPHTTPClient.new()
@@ -30,6 +34,8 @@ var player_uuid = null
 var timer: Timer
 var timer_wait_in_s = 10
 var sdk_node
+
+
 
 func _ready():
 	if Engine.is_editor_hint():
@@ -82,6 +88,8 @@ func _process(delta):
 	if Engine.is_editor_hint() or !sdk_node or !player_uuid:
 		return
 	sdk_node.Update()
+	
+	# ----- ENTITIES ------
 	# iterate through entities, emit changes
 	var entities = sdk_node.GetEntities()
 	var entity_ids = entities.keys()
@@ -94,16 +102,39 @@ func _process(delta):
 		else:
 			if entity_id == player_uuid:
 				emit_signal("new_player_entity", player_uuid, entity_data)
-				print('Fired new_player_entity: ' + player_uuid)
 			else:
 				emit_signal("new_entity", entity_id, entity_data)
-				print('Fired new_entity: ' + entity_id, entity_data)
+				#print('Fired new_entity: ' + entity_id, entity_data)
 	# remove missing entities
 	for entity_id in to_remove_entity_ids:
 		if entity_id != player_uuid:
 			emit_signal("remove_entity", entity_id)
-			print('Fired remove_entity: ' + entity_id)
 	registered_entities = entity_ids
+	
+	# ----- CHUNKS ------
+	# Iterate through chunks, emit changes 
+	var chunks = sdk_node.GetChunks()
+	var chunk_ids = chunks.keys()
+	# copy memory. We remove chunks from the copy that appear in new list until only those that don't appear are left
+	var to_remove_chunk_ids = registered_chunks.duplicate()
+	for chunk_id in chunk_ids:
+		# Don't remove if in new chunks list
+		to_remove_chunk_ids.erase(chunk_id)
+		
+		#change chunk if chunk in registered_chunks memory map
+		var chunk_data = chunks[chunk_id]
+		if registered_chunks.find(chunk_id) != -1: 
+			emit_signal("chunk_state_changed", chunk_id, chunk_data)
+					
+		else: # Chunk has not been seen before 
+			#emit new chunk
+			emit_signal("new_chunk", chunk_id, chunk_data)
+	
+	#to_remove... now only includes chunks that didn't appear in new chunks list
+	for chunk_id in to_remove_chunk_ids:
+		emit_signal("remove_chunk", chunk_id)
+	# Log chunk state in memory
+	registered_chunks = chunk_ids
 
 func _get_property_list() -> Array[Dictionary]:
 	var properties: Array[Dictionary] = []
@@ -188,4 +219,3 @@ func _enter_tree():
 	csproj_reference_exists = Utils.csproj_planetary_reference_exists(csproj_files[0])
 	notify_property_list_changed()
 	assert(csproj_reference_exists, "Planetary Processing reference does not exist in " + csproj_files[0] + "\nClick \"Add Csproj Reference\" in the PPRootNode inspector to add the reference.")
-

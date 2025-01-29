@@ -6,6 +6,7 @@ var inspector_plugin
 func _enter_tree():
 	add_custom_type("PPRootNode", "Node", preload("pp_root_node.gd"), preload("pp_logo.png"))
 	add_custom_type("PPEntityNode", "Node", preload("pp_entity_node.gd"), preload("pp_logo.png"))
+	add_custom_type("PPChunkNode", "Node", preload("pp_chunk_node.gd"), preload("pp_logo.png"))
 	if Engine.is_editor_hint():
 		inspector_plugin = preload("pp_inspector_button_plugin.gd").new()
 		add_inspector_plugin(inspector_plugin)
@@ -17,5 +18,6 @@ func _enter_tree():
 func _exit_tree():
 	remove_custom_type("PPRootNode")
 	remove_custom_type("PPEntityNode")
+	remove_custom_type("PPChunkNode")
 	if Engine.is_editor_hint():
 		remove_inspector_plugin(inspector_plugin)
