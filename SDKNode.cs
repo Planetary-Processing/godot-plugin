@@ -90,8 +90,8 @@ public partial class SDKNode : Node
 	{
 		bool isDict = value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>);
 		if (isDict) {
-				var gdDict = new Godot.Collections.Dictionary<string, Godot.Variant>();
-				foreach ((string key, dynamic val) in (Dictionary<string, object>)value)
+				var gdDict = new Godot.Collections.Dictionary<Godot.Variant, Godot.Variant>();
+				foreach ((dynamic key, dynamic val) in (Dictionary<object, object>)value)
 				{
 					gdDict[key] = ConvertToGodotVariant(val);
 				}
