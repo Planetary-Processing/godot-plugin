@@ -25,7 +25,7 @@ var game_id = ''
 var logged_in = false
 var registered_entities = []
 var registered_chunks = []
-@export_range(64, 64, 65536) var Chunk_Size: int = 64
+@export_range(64, 65536) var Chunk_Size: int = 64
 
 var csproj_reference_exists = false
 var client = PPHTTPClient.new()
