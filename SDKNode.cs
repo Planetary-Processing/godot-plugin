@@ -156,7 +156,7 @@ public partial class SDKNode : Node
 		} else {
 			// The chunk already exists, update its data if necessary
 			Godot.Variant existingChunkVariant = chunkMap[cnk.id.ToString()];
-			 if (existingChunkVariant.Obj is Godot.Collections.Dictionary<string, Godot.Variant> existingChunk) {
+			 if (existingChunkVariant.Obj is Godot.Collections.Dictionary existingChunk) {
 				// Update chunk data if needed
 				existingChunk["data"] = ConvertToGodotVariantDictionary(cnk.data);
 				GD.Print($"Updated existing chunk with ID {cnk.id}");
