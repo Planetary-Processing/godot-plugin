@@ -113,7 +113,9 @@ public partial class SDKNode : Node
 	public void Update()
 	{
 		sdk.Update();
-		// delete chunks that go out of the radius
+		if (!sdk.entities.ContainsKey(sdk.UUID)) {
+			sdk.Join();
+		}
 	}
 	
 	public Godot.Collections.Dictionary<string, Godot.Variant> GetEntities()
