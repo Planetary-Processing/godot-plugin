@@ -72,6 +72,15 @@ public partial class SDKNode : Node
 				return value.As<double>();
 			case Godot.Variant.Type.String:
 				return value.As<string>();
+			 case Godot.Variant.Type.Array:
+				GD.Print("13 doing convert from godot variant array branch");
+				var godotArray = value.As<Godot.Collections.Array<Godot.Variant>>();
+				var csharpList = new List<dynamic>();
+				foreach (var item in godotArray)
+				{
+					csharpList.Add(ConvertFromGodotVariant(item));
+				}
+				return csharpList;
 			case Godot.Variant.Type.Dictionary:
 				var godotDict = value.As<Godot.Collections.Dictionary<string, Godot.Variant>>();
 				var csharpDict = new Dictionary<string, dynamic>();
@@ -88,17 +97,32 @@ public partial class SDKNode : Node
 
 	private Godot.Variant ConvertToGodotVariant(dynamic value)
 	{
-		bool isDict = value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>);
-		if (isDict) {
-				var gdDict = new Godot.Collections.Dictionary<Godot.Variant, Godot.Variant>();
-				foreach ((dynamic key, dynamic val) in (Dictionary<object, object>)value)
-				{
-					gdDict[key] = ConvertToGodotVariant(val);
-				}
-				return gdDict;
+		Type valueType = value.GetType();
+
+		bool isDict = valueType.IsGenericType && valueType.GetGenericTypeDefinition() == typeof(Dictionary<,>);
+		if (isDict)
+		{
+			var gdDict = new Godot.Collections.Dictionary<Godot.Variant, Godot.Variant>();
+			foreach ((dynamic key, dynamic val) in (Dictionary<object, object>)value)
+			{
+				gdDict[key] = ConvertToGodotVariant(val);
+			}
+			return gdDict;
+		}
+
+		bool isArray = value is List<dynamic> || value is Array;
+		if (isArray)
+		{
+			var gdArray = new Godot.Collections.Array<Godot.Variant>();
+			foreach (var item in value)
+			{
+				gdArray.Add(ConvertToGodotVariant(item));
+			}
+			return gdArray;
 		}
 		return value;
 	}
+
 	
 	private Godot.Collections.Dictionary<string, Godot.Variant> ConvertToGodotVariantDictionary(Dictionary<string, dynamic> dict)
 	{
@@ -167,17 +191,6 @@ public partial class SDKNode : Node
 			}
 		}
 		// Remove chunks further than 3 from the player's current chunk
-		// We don't have access to player coords easily here, so use other chunks:
-		// 	updates will only be sent from chunks within 3, so remove those 3 away from cnk
-		// pseudocode:
-		// make empty list toRemove
-		// foreach id, chunk in chunkMap {
-		// if abs(chunk.x - cnk.x) > 3 or  abs(chunk.y - cnk.y) > 3} {
-		// 	add chunk to toRemove
-		// }}
-		// foreach id in toRemove {
-		// 	remove id from chunkMap}
-		
 		List<string> toRemove = new List<string>();
 		foreach (string chunk_id in chunkMap.Keys) {
 			// Get the chunk from the dictionary
