@@ -51,16 +51,16 @@ func _ready():
 		"Planetary Processing Game ID not configured"
 	)
 	# Setup map of scenes & alert user if scene not configured properly
-	for pf in scenes:
-		if pf: # Don't error if there is an unfilled index in the scene map
-			var instance = pf.instantiate()
+	for scene in scenes:
+		if scene: # Don't error if there is an unfilled index in the scene map
+			var instance = scene.instantiate()
 			var entity_node = instance.get_node_or_null("PPEntityNode")
 			if not entity_node:
-				push_error("Scene is in the entity list but lacks PPEntityNode component: " + str(pf.resource_path))
+				push_error("Scene is in the entity list but lacks PPEntityNode component: " + str(scene.resource_path))
 			else:
 				var entity_type = entity_node.type
 				print("Readying "+entity_type+ " scene")
-				scenes_map[entity_type] = pf
+				scenes_map[entity_type] = scene
 			instance.queue_free()  # Cleanup after checking
 
 
@@ -104,6 +104,7 @@ func authenticate_player_thread(username: String, password: String):
 	if err:
 		player_uuid = null
 		
+		# Debug: Print before emitting the signal
 		var callable = Callable(self, "emit_signal")
 		var bound_callable = callable.bind("player_authentication_error", err)
 		bound_callable.call_deferred()
@@ -116,8 +117,8 @@ func authenticate_player_thread(username: String, password: String):
 	bound_callable.call_deferred()
 	
 func _on_player_authentication_error(error_message):
-	print("Player failed authentication:", error_message)
-	push_error("Failed to authenticate player. Check credentials."+ error_message)
+	print("Player failed authentication")
+	push_error("Failed to authenticate player. Check credentials.")
 
 func _on_player_authenticated(player_uuid):
 	print("Authenticated successful. UUID: ", player_uuid)
@@ -315,24 +316,24 @@ func _on_remove_entity(entity_id):
 #create an chunk instance matching its type, and add it as a child node
 func _on_new_chunk(chunk_id, state):
 	if not chunk_scene:
-		print("matching scene not found: chunk_scene" )
+		print("No chunk scene provided. Chunk scene instantiation aborted" )
+	else: 
+		# create an chunk instance
+		var chunk_instance = chunk_scene.instantiate()
 
-	# create an chunk instance
-	var chunk_instance = chunk_scene.instantiate()
+		# validate that the entity scene has a PPEntityNode
+		var pp_chunk_node = chunk_instance.get_node_or_null("PPChunkNode")
+		if pp_chunk_node:
+			pp_chunk_node.chunk_id = chunk_id
+		else:
+			print("PPChunkNode not found in the instance")
 
-	# validate that the entity scene has a PPEntityNode
-	var pp_chunk_node = chunk_instance.get_node_or_null("PPChunkNode")
-	if pp_chunk_node:
-		pp_chunk_node.chunk_id = chunk_id
-	else:
-		print("PPChunkNode not found in the instance")
-
-	# add the chunk as a child of the root node  
-	add_child(chunk_instance)
-	# position the entity based on its server location
-	# NOTE: Planetary Processing uses 'y' for depth in 3D games, and 'z' for height. The depth axis is also inverted.
-	# To convert, set Godot's 'y' to negative, then swap 'y' and 'z'.
-	chunk_instance.global_transform.origin = Vector3((state.x * Chunk_Size), 0, -(state.y *  Chunk_Size))
+		# add the chunk as a child of the root node  
+		add_child(chunk_instance)
+		# position the entity based on its server location
+		# NOTE: Planetary Processing uses 'y' for depth in 3D games, and 'z' for height. The depth axis is also inverted.
+		# To convert, set Godot's 'y' to negative, then swap 'y' and 'z'.
+		chunk_instance.global_transform.origin = Vector3((state.x * Chunk_Size), 0, -(state.y *  Chunk_Size))
 	
 # remove an chunk instance, from the current child nodes
 func _on_remove_chunk(chunk_id):
