@@ -73,7 +73,6 @@ public partial class SDKNode : Node
 			case Godot.Variant.Type.String:
 				return value.As<string>();
 			 case Godot.Variant.Type.Array:
-				GD.Print("13 doing convert from godot variant array branch");
 				var godotArray = value.As<Godot.Collections.Array<Godot.Variant>>();
 				var csharpList = new List<dynamic>();
 				foreach (var item in godotArray)
