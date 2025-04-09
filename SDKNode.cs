@@ -9,16 +9,44 @@ public partial class SDKNode : Node
 	private SDK sdk;
 	private ulong gameId;
 	private Godot.Collections.Dictionary<string, Godot.Variant> chunkMap = new Godot.Collections.Dictionary<string, Godot.Variant>();
+	private Action<Dictionary<String, object>> eventCallback;
 
 	public uint chunkSize;
+	public bool test;
+	
+	
+	public void SetEventCallback(GodotObject callbackObject)
+	{
+		if (callbackObject != null && callbackObject.HasMethod("eventCallback"))
+		{
+			GD.Print("Registered eventCallback");
+
+			this.eventCallback = (Dictionary<string, object> data) =>
+			{
+				callbackObject.Call("eventCallback", ConvertToGodotVariantDictionary(data));
+			};
+		}
+		else
+		{
+			GD.PrintErr("Provided object does not have 'eventCallback'");
+		}
+}
 	
 	public void SetGameID(ulong gameId)
 	{
 		this.gameId = gameId;
-		sdk = new SDK(
-			gameId,
-			this.HandleChunk
-		);
+		if (this.eventCallback != null){
+			sdk = new SDK(
+				gameId,
+				this.HandleChunk,
+				this.eventCallback
+			);
+		} else {
+			sdk = new SDK(
+				gameId,
+				this.HandleChunk
+			);
+		}
 		GD.Print("SDKNode game ID " + gameId);
 	}
 	
@@ -215,7 +243,6 @@ public partial class SDKNode : Node
 	
 	public Godot.Collections.Dictionary<string, Godot.Variant> GetChunks()
 	{
-
 		return chunkMap;
 	}
 	

@@ -33,6 +33,9 @@ var registered_chunks = []
 @export var chunk_scene: PackedScene
 # Entities: 
 @export var scenes: Array[PackedScene] = []
+# event callback
+@export var eventCallback: Node
+
 var scenes_map: Dictionary = {}
 
 var csproj_reference_exists = false
@@ -62,9 +65,16 @@ func _ready():
 				print("Readying "+entity_type+ " scene")
 				scenes_map[entity_type] = scene
 			instance.queue_free()  # Cleanup after checking
-
-
+	
+	
 	sdk_node = SDKScript.new()
+	
+	if eventCallback and eventCallback.has_method("eventCallback"):
+		print("got eventCallback")
+		sdk_node.SetEventCallback(eventCallback)
+	else:
+		print("Assigned node does not have 'eventCallback' method.")
+	
 	sdk_node.SetGameID(game_id)
 	
 	var player_connected_timer = Timer.new()
