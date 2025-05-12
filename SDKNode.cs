@@ -17,13 +17,13 @@ public partial class SDKNode : Node
 	
 	public void SetEventCallback(GodotObject callbackObject)
 	{
-		if (callbackObject != null && callbackObject.HasMethod("eventCallback"))
+		if (callbackObject != null && callbackObject.HasMethod("server_to_client"))
 		{
 			GD.Print("Registered eventCallback");
 
 			this.eventCallback = (Dictionary<string, object> data) =>
 			{
-				callbackObject.Call("eventCallback", ConvertToGodotVariantDictionary(data));
+				callbackObject.Call("server_to_client", ConvertToGodotVariantDictionary(data));
 			};
 		}
 		else
