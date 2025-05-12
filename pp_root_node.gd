@@ -34,7 +34,7 @@ var registered_chunks = []
 # Entities: 
 @export var scenes: Array[PackedScene] = []
 # event callback
-@export var eventCallback: Node
+@export var server_to_client_node: Node
 
 var scenes_map: Dictionary = {}
 
@@ -69,11 +69,11 @@ func _ready():
 	
 	sdk_node = SDKScript.new()
 	
-	if eventCallback and eventCallback.has_method("eventCallback"):
-		print("got eventCallback")
-		sdk_node.SetEventCallback(eventCallback)
+	if server_to_client_node and server_to_client_node.has_method("server_to_client"):
+		print("got server_to_client")
+		sdk_node.SetEventCallback(server_to_client_node)
 	else:
-		print("Assigned node does not have 'eventCallback' method.")
+		print("Assigned node does not have 'server_to_client' method.")
 	
 	sdk_node.SetGameID(game_id)
 	
