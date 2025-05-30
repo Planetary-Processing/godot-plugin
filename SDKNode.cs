@@ -17,13 +17,13 @@ public partial class SDKNode : Node
 	
 	public void SetEventCallback(GodotObject callbackObject)
 	{
-		if (callbackObject != null && callbackObject.HasMethod("server_to_client"))
+		if (callbackObject != null && callbackObject.HasMethod("eventCallback"))
 		{
 			GD.Print("Registered eventCallback");
 
 			this.eventCallback = (Dictionary<string, object> data) =>
 			{
-				callbackObject.Call("server_to_client", ConvertToGodotVariantDictionary(data));
+				callbackObject.Call("eventCallback", ConvertToGodotVariantDictionary(data));
 			};
 		}
 		else
@@ -86,6 +86,17 @@ public partial class SDKNode : Node
 		sdk.Message(message);
 	}
 	
+	public void DirectMessage(string TargetUUID, Godot.Collections.Dictionary<string, Godot.Variant> msg)
+	{
+		Dictionary<string, dynamic> message = new Dictionary<string, dynamic>();
+		foreach (var key in msg.Keys)
+		{
+			dynamic value = msg[key];
+			message[key] = ConvertFromGodotVariant(value);
+		}
+		sdk.DirectMessage(TargetUUID, message);
+	}
+	
 	private dynamic ConvertFromGodotVariant(Godot.Variant value)
 	{
 		switch (value.VariantType)
@@ -124,6 +135,11 @@ public partial class SDKNode : Node
 
 	private Godot.Variant ConvertToGodotVariant(dynamic value)
 	{
+		if (value == null)
+		{
+			return new Godot.Variant(); // Return a null Variant
+		}
+
 		Type valueType = value.GetType();
 
 		bool isDict = valueType.IsGenericType && valueType.GetGenericTypeDefinition() == typeof(Dictionary<,>);
@@ -147,8 +163,10 @@ public partial class SDKNode : Node
 			}
 			return gdArray;
 		}
+
 		return value;
 	}
+
 
 	
 	private Godot.Collections.Dictionary<string, Godot.Variant> ConvertToGodotVariantDictionary(Dictionary<string, dynamic> dict)
@@ -182,7 +200,6 @@ public partial class SDKNode : Node
 			gdEntity["z"] = entity.z;
 			gdEntity["data"] = ConvertToGodotVariantDictionary(entity.data);
 			gdEntity["type"] = entity.type;
-
 			gdEntities[entity.id] = gdEntity;
 		}
 		return gdEntities;

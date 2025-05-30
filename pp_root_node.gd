@@ -34,7 +34,7 @@ var registered_chunks = []
 # Entities: 
 @export var scenes: Array[PackedScene] = []
 # event callback
-@export var server_to_client_node: Node
+@export var eventCallback: Node
 
 var scenes_map: Dictionary = {}
 
@@ -69,11 +69,11 @@ func _ready():
 	
 	sdk_node = SDKScript.new()
 	
-	if server_to_client_node and server_to_client_node.has_method("server_to_client"):
-		print("got server_to_client")
-		sdk_node.SetEventCallback(server_to_client_node)
+	if eventCallback and eventCallback.has_method("eventCallback"):
+		print("got eventCallback")
+		sdk_node.SetEventCallback(eventCallback)
 	else:
-		print("Assigned node does not have 'server_to_client' method.")
+		print("Assigned node does not have 'eventCallback' method.")
 	
 	sdk_node.SetGameID(game_id)
 	
@@ -136,6 +136,9 @@ func _on_player_authenticated(player_uuid):
 func message(msg):
 	sdk_node.Message(msg)
 
+func direct_message(uuid, msg):
+	sdk_node.DirectMessage(uuid, msg)
+
 func _process(delta):
 	if Engine.is_editor_hint() or !sdk_node or !player_uuid:
 		return
@@ -144,24 +147,26 @@ func _process(delta):
 	# ----- ENTITIES ------
 	# iterate through entities, emit changes
 	var entities = sdk_node.GetEntities()
-	var entity_ids = entities.keys()
-	var to_remove_entity_ids = registered_entities.duplicate()
-	for entity_id in entity_ids:
-		to_remove_entity_ids.erase(entity_id)
-		var entity_data = entities[entity_id]
-		if registered_entities.find(entity_id) != -1:
-			emit_signal("entity_state_changed", entity_id, entity_data)
-		else:
-			if entity_id == player_uuid:
-				emit_signal("new_player_entity", player_uuid, entity_data)
+
+	if entities:
+		var entity_ids = entities.keys()
+		var to_remove_entity_ids = registered_entities.duplicate()
+		for entity_id in entity_ids:
+			to_remove_entity_ids.erase(entity_id)
+			var entity_data = entities[entity_id]
+			if registered_entities.find(entity_id) != -1:
+				emit_signal("entity_state_changed", entity_id, entity_data)
 			else:
-				emit_signal("new_entity", entity_id, entity_data)
-				#print('Fired new_entity: ' + entity_id, entity_data)
-	# remove missing entities
-	for entity_id in to_remove_entity_ids:
-		if entity_id != player_uuid:
-			emit_signal("remove_entity", entity_id)
-	registered_entities = entity_ids
+				if entity_id == player_uuid:
+					emit_signal("new_player_entity", player_uuid, entity_data)
+				else:
+					emit_signal("new_entity", entity_id, entity_data)
+					#print('Fired new_entity: ' + entity_id, entity_data)
+		# remove missing entities
+		for entity_id in to_remove_entity_ids:
+			if entity_id != player_uuid:
+				emit_signal("remove_entity", entity_id)
+		registered_entities = entity_ids
 	
 	# ----- CHUNKS ------
 	# Iterate through chunks, emit changes 
